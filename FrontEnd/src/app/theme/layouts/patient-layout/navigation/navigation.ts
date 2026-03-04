@@ -63,7 +63,7 @@ export const NavigationItems: NavigationItem[] = [
     id: 'appointment',
     title: 'Appointment Management',
     type: 'group',
-    icon: 'schedule', // Ant Design schedule icon
+    icon: 'calendar', // Ant Design calendar icon
     children: [
       {
         id: 'reservation',
@@ -77,7 +77,7 @@ export const NavigationItems: NavigationItem[] = [
         title: 'Consultation History',
         type: 'item',
         url: '/patient/consultation',
-        icon: 'schedule'
+        icon: 'history'
       }
     ]
   },
@@ -101,7 +101,7 @@ export const NavigationItems: NavigationItem[] = [
         title: 'Medication Reminders',
         type: 'item',
         url: '/patient/medication',
-        icon: 'medicine-box',
+        icon: 'experiment',
         breadcrumbs: false
       },
       {
@@ -121,6 +121,22 @@ export const NavigationItems: NavigationItem[] = [
         breadcrumbs: false
       }
     ]
-  }
+  },
+  {
+    id: 'reports',
+    title: 'Reports',
+    type: 'group',
+    icon: 'file-pdf',  // Ant Design file-pdf icon
+    children: [
+       {
+        id: 'generate-reports',
+        title: 'Forums',
+        type: 'item',
+        url: '/patient/forum', // Path to generate reports
+        classes: 'nav-item',
+        icon: 'file-text', // Ant Design file-text icon
+      }
+    ]
+  },
 ];
 

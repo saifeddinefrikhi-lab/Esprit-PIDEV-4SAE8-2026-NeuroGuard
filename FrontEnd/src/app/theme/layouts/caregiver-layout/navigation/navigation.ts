@@ -41,7 +41,7 @@ export const NavigationItems: NavigationItem[] = [
     id: 'appointment',
     title: 'Appointment Management',
     type: 'group',
-    icon: 'schedule', // Ant Design schedule icon
+    icon: 'calendar', // Ant Design calendar icon
     children: [
       {
         id: 'appointments',
@@ -57,7 +57,7 @@ export const NavigationItems: NavigationItem[] = [
         type: 'item',
         classes: 'nav-item',
         url: '/caregiver/consultations', // Path to manage consultations
-        icon: 'schedule', // Ant Design schedule icon
+        icon: 'plus-circle', // Ant Design plus-circle icon
       },
     ]
   },
@@ -107,6 +107,23 @@ export const NavigationItems: NavigationItem[] = [
         url: '/caregiver/medical-history/patients', // Path to view patient medical history
         icon: 'file-text', // Ant Design file-text icon
       },
+    ]
+  },
+   {
+    id: 'reports',
+    title: 'Reports',
+    type: 'group',
+    icon: 'file-pdf',  // Ant Design file-pdf icon
+    children: [
+       {
+        id: 'generate-reports',
+        title: 'Forums',
+        type: 'item',
+        url: '/caregiver/forum', // Path to generate reports
+        classes: 'nav-item',
+        icon: 'file-text', // Ant Design file-text icon
+      },
+  
     ]
   },
 ];

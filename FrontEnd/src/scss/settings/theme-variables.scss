@@ -1,6 +1,9 @@
 // =======================================
 //     List of variables for layout
 // =======================================
+
+@use 'sass:color';
+
 :root {
   // body
   --#{$variable-prefix}body-bg: #{$body-bg};
@@ -85,7 +88,7 @@ $success-bg-subtle: $green-100;
 $info-bg-subtle: $cyan-100;
 $warning-bg-subtle: $yellow-100;
 $danger-bg-subtle: $red-100;
-$light-bg-subtle: mix($gray-100, $white);
+$light-bg-subtle: color.mix($gray-100, $white);
 $dark-bg-subtle: $gray-400;
 
 $primary-border-subtle: $blue-200;

@@ -33,13 +33,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String token = authHeader.substring(7);
+
+        // Check if token has been invalidated (logged out)
+        if (jwtUtils.isTokenInvalidated(token)) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         if (!jwtUtils.validateJwtToken(token)) {
             chain.doFilter(request, response);
             return;
         }
 
         // Extract claims
-        DecodedJWT decodedJWT = jwtUtils.verifyToken(token); // you may need to add this method
+        DecodedJWT decodedJWT = jwtUtils.verifyToken(token);
         String username = decodedJWT.getSubject();
         String role = decodedJWT.getClaim("role").asString();
         Long userId = decodedJWT.getClaim("userId").asLong();

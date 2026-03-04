@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: risk-alert-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/risk_alert_db?createDatabaseIfNotExist=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 8084
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+    register-with-eureka: true
+    fetch-registry: true
+
+jwt:
+  secret: ${JWT_SECRET:XDkzF2YNPA/7vXmPYJmaACjY6VBhwHJbr4pzPF5jguE=}  # same as user-service
+
+logging:
+  level:
+    com.neuroguard.riskalertservice: DEBUG
+    org.springframework.security: DEBUG

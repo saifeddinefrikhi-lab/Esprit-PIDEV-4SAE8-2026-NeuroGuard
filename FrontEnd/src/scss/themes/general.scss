@@ -2,6 +2,9 @@
     2. Custom css start
 ==========================  **/
 
+@use 'sass:map';
+@use 'sass:color';
+
 * {
   &:focus {
     outline: none;
@@ -155,11 +158,11 @@ strong {
 
     @while $i<=900 {
       &.bg-#{$name}-#{$i} {
-        color: color-contrast(map-get($value, $i));
+        color: color-contrast(map.get($value, $i));
       }
 
       &.text-#{$name}-#{$i} {
-        background-color: color-contrast(map-get($value, $i));
+        background-color: color-contrast(map.get($value, $i));
       }
 
       $i: $i + 100;

@@ -31,8 +31,11 @@ import {
   HeartOutline,
   MedicineBoxOutline,
   BookOutline,
-  BellOutline
-  
+  BellOutline,
+  PlusCircleOutline,
+  ExperimentOutline,
+  HistoryOutline,
+  FileTextOutline
 } from '@ant-design/icons-angular/icons';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 
@@ -83,6 +86,21 @@ export class NavContentComponent implements OnInit {
         HeartOutline,
         MedicineBoxOutline,
         BookOutline,
+        BellOutline,
+        PlusCircleOutline,
+        ExperimentOutline,
+        HistoryOutline,
+        FileTextOutline,
+        HomeOutline,
+        UserOutline,
+        UserAddOutline,
+        TeamOutline,
+        ScheduleOutline,
+        CalendarOutline,
+        AppstoreOutline,
+        HeartOutline,
+        MedicineBoxOutline,
+        BookOutline,
         BellOutline
       ]
     );
@@ -122,8 +140,11 @@ export class NavContentComponent implements OnInit {
   }
 
   navMob() {
-    if (this.windowWidth < 1025 && document.querySelector('app-navigation.coded-navbar').classList.contains('mob-open')) {
-      this.NavCollapsedMob.emit();
+    if (this.windowWidth < 1025) {
+      const navbar = document.querySelector('app-navigation.coded-navbar');
+      if (navbar && navbar.classList.contains('mob-open')) {
+        this.NavCollapsedMob.emit();
+      }
     }
   }
 }

@@ -6,6 +6,9 @@ import { environment } from '../../../environments/environment';
 
 export interface CurrentUser {
   name: string;
+  username: string;
+  firstName?: string;
+  lastName?: string;
   role: string;
   userId: number;
 }
@@ -19,6 +22,8 @@ export class AuthService {
   private isLoggedInSubject = new BehaviorSubject<boolean>(false);
   public isLoggedIn$ = this.isLoggedInSubject.asObservable();
 
+  private readonly jwtPattern = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/;
+
   constructor(private http: HttpClient, private router: Router) {
     this.initializeCurrentUser();
   }
@@ -30,24 +35,24 @@ export class AuthService {
 
   // Initialize the current user by decoding the token stored in localStorage
   private initializeCurrentUser() {
-    const token = localStorage.getItem('authToken');
+    const storedAuthValue = localStorage.getItem('authToken');
+    const token = this.extractJwtToken(storedAuthValue);
+
     if (token) {
       try {
-        // Check if the token is a valid JWT (3 parts separated by dots)
-        if (token.split('.').length === 3) {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          this.currentUser = {
-            name: payload.name || payload.username || payload.sub || 'User',
-            role: payload.role,
-            userId: payload.userId   // <-- userId from token
-          };
-          this.isLoggedInSubject.next(true);
-        } else {
-          // Not a valid JWT, clear it
-          localStorage.removeItem('authToken');
-          this.currentUser = null;
-          this.isLoggedInSubject.next(false);
-        }
+        const payload = this.decodeJwtPayload(token);
+        const firstName = payload.firstName || '';
+        const lastName = payload.lastName || '';
+        const fullName = `${firstName} ${lastName}`.trim() || payload.name || payload.username || payload.sub || 'User';
+        this.currentUser = {
+          name: fullName,
+          username: payload.username || payload.sub || 'user',
+          firstName: firstName,
+          lastName: lastName,
+          role: payload.role,
+          userId: payload.userId   // <-- userId from token
+        };
+        this.isLoggedInSubject.next(true);
       } catch (error) {
         console.error('Error parsing token:', error);
         localStorage.removeItem('authToken');
@@ -95,22 +100,27 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/auth/login`, credentials, {
       responseType: 'text'
     }).pipe(
-      tap((token: string) => {
-        const trimmedToken = token?.trim() || '';
-        const tokenParts = trimmedToken.split('.');
+      tap((responseBody: string) => {
+        const token = this.extractJwtToken(responseBody);
 
-        if (tokenParts.length !== 3) {
+        if (!token) {
           throw new Error('Invalid username or password.');
         }
 
         // Store token in localStorage
-        localStorage.setItem('authToken', trimmedToken);
+        localStorage.setItem('authToken', token);
 
         // Decode token
         try {
-          const payload = JSON.parse(atob(tokenParts[1]));
+          const payload = this.decodeJwtPayload(token);
+          const firstName = payload.firstName || '';
+          const lastName = payload.lastName || '';
+          const fullName = `${firstName} ${lastName}`.trim() || payload.name || payload.username || payload.sub || credentials.username;
           this.currentUser = {
-            name: payload.name || payload.username || payload.sub || credentials.username,
+            name: fullName,
+            username: payload.username || payload.sub || credentials.username,
+            firstName: firstName,
+            lastName: lastName,
             role: payload.role,
             userId: payload.userId
           };
@@ -148,7 +158,7 @@ export class AuthService {
 
   // Helper function to extract role from JWT token
   getRoleFromToken(token: string): string {
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    const payload = this.decodeJwtPayload(token);
     return payload.role;
   }
 
@@ -206,6 +216,37 @@ export class AuthService {
   }
   
   getToken(): string | null {
-  return localStorage.getItem('authToken');
-}
+    return this.extractJwtToken(localStorage.getItem('authToken'));
+  }
+
+  private extractJwtToken(rawValue: unknown): string | null {
+    if (typeof rawValue !== 'string' || !rawValue.trim()) {
+      return null;
+    }
+
+    const trimmed = rawValue.trim();
+    if (this.jwtPattern.test(trimmed)) {
+      return trimmed;
+    }
+
+    try {
+      const parsed = JSON.parse(trimmed);
+      const candidate = parsed?.token || parsed?.accessToken || parsed?.jwt;
+
+      if (typeof candidate === 'string' && this.jwtPattern.test(candidate.trim())) {
+        return candidate.trim();
+      }
+    } catch {
+      return null;
+    }
+
+    return null;
+  }
+
+  private decodeJwtPayload(token: string): any {
+    const payloadPart = token.split('.')[1];
+    const base64 = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+    return JSON.parse(atob(padded));
+  }
 }

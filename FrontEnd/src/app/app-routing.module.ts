@@ -26,8 +26,8 @@ export const routes: Routes = [
         loadComponent: () => import('./Back-office/dashboard/default/default.component').then((c) => c.DefaultComponent)
       },
       {
-        path: 'admin/providers',
-        loadComponent: () => import('./Back-office/pages/healthcare-privider-management/healthcare-privider-management').then((c) => c.HealthcarePrividerManagement)
+        path: 'admin/users',
+        loadComponent: () => import('./Back-office/pages/user-list.component/user-list.component').then((c) => c.UserListComponent)
       },
       {
         path: 'admin/caregivers',
@@ -36,6 +36,22 @@ export const routes: Routes = [
       {
         path: 'admin/patients',
         loadComponent: () => import('./Back-office/pages/patient-management/patient-management').then((c) => c.PatientManagement)
+      },
+      {
+        path: 'admin/forum',
+        loadComponent: () => import('./pages/post-list.component/post-list.component').then((c) => c.PostListComponent)
+      },
+      {
+        path: 'admin/forum/new',
+        loadComponent: () => import('./pages/post-form.component/post-form.component').then((c) => c.PostFormComponent)
+      },
+      {
+        path: 'admin/forum/edit/:id',
+        loadComponent: () => import('./pages/post-form.component/post-form.component').then((c) => c.PostFormComponent)
+      },
+      {
+        path: 'admin/forum/:id',
+        loadComponent: () => import('./pages/post-detail.component/post-detail.component').then((c) => c.PostDetailComponent)
       },
     ]
   },
@@ -54,7 +70,22 @@ export const routes: Routes = [
         path: 'patient/medical-history',
         loadComponent: () => import('./Front-office/patient/patient-medical-history/patient-medical-history').then((c) => c.PatientMedicalHistoryComponent)
       },
-       
+       {
+        path: 'patient/forum',
+        loadComponent: () => import('./pages/post-list.component/post-list.component').then((c) => c.PostListComponent)
+      },
+      {
+        path: 'patient/forum/new',
+        loadComponent: () => import('./pages/post-form.component/post-form.component').then((c) => c.PostFormComponent)
+      },
+      {
+        path: 'patient/forum/edit/:id',
+        loadComponent: () => import('./pages/post-form.component/post-form.component').then((c) => c.PostFormComponent)
+      },
+      {
+        path: 'patient/forum/:id',
+        loadComponent: () => import('./pages/post-detail.component/post-detail.component').then((c) => c.PostDetailComponent)
+      },
       
     ]
   },
@@ -76,8 +107,23 @@ export const routes: Routes = [
       {
         path: 'caregiver/medical-history/view/:patientId',
         loadComponent: () => import('./Front-office/caregiver/caregiver-patient-detail/caregiver-patient-detail').then((c) => c.CaregiverPatientDetailComponent)
-      }
-      
+      },
+      {
+        path: 'caregiver/forum',
+        loadComponent: () => import('./pages/post-list.component/post-list.component').then((c) => c.PostListComponent)
+      },
+      {
+        path: 'caregiver/forum/new',
+        loadComponent: () => import('./pages/post-form.component/post-form.component').then((c) => c.PostFormComponent)
+      },
+      {
+        path: 'caregiver/forum/edit/:id',
+        loadComponent: () => import('./pages/post-form.component/post-form.component').then((c) => c.PostFormComponent)
+      },
+      {
+        path: 'caregiver/forum/:id',
+        loadComponent: () => import('./pages/post-detail.component/post-detail.component').then((c) => c.PostDetailComponent)
+      },
     ]
   },
 
@@ -107,7 +153,23 @@ export const routes: Routes = [
       {
         path: 'provider/medical-history/view/:patientId',
         loadComponent: () => import('./Front-office/healthcare-provider/provider-medical-history-detail/provider-medical-history-detail').then((c) => c.ProviderMedicalHistoryDetailComponent)
-      }
+      },
+      {
+        path: 'provider/forum',
+        loadComponent: () => import('./pages/post-list.component/post-list.component').then((c) => c.PostListComponent)
+      },
+      {
+        path: 'provider/forum/new',
+        loadComponent: () => import('./pages/post-form.component/post-form.component').then((c) => c.PostFormComponent)
+      },
+      {
+        path: 'provider/forum/edit/:id',
+        loadComponent: () => import('./pages/post-form.component/post-form.component').then((c) => c.PostFormComponent)
+      },
+      {
+        path: 'provider/forum/:id',
+        loadComponent: () => import('./pages/post-detail.component/post-detail.component').then((c) => c.PostDetailComponent)
+      },
       
      
     ]

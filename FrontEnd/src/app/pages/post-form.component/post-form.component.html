@@ -1,0 +1,116 @@
+<div class="form-container">
+  <!-- Header -->
+  <div class="form-header">
+    <div class="header-content">
+      <h1 class="form-title">{{ isEdit ? 'Edit Post' : 'Create New Post' }}</h1>
+      <p class="form-subtitle">{{ isEdit ? 'Update your post content' : 'Share your thoughts with the community' }}</p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="error-alert">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    <span>{{ error }}</span>
+  </div>
+
+  <!-- Form -->
+  <form [formGroup]="postForm" (ngSubmit)="onSubmit()" *ngIf="!loading" class="post-form">
+    <!-- Title Field -->
+    <div class="form-group">
+      <label for="title" class="form-label">
+        Title <span class="required">*</span>
+      </label>
+      <input 
+        type="text" 
+        class="form-input" 
+        [class.invalid]="postForm.get('title')?.invalid && postForm.get('title')?.touched"
+        id="title" 
+        formControlName="title" 
+        placeholder="Enter a descriptive title...">
+      <div *ngIf="postForm.get('title')?.invalid && postForm.get('title')?.touched" class="error-message">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span>Title must be at least 3 characters long</span>
+      </div>
+      <div class="char-count" *ngIf="postForm.get('title')?.value">
+        {{ postForm.get('title')?.value.length }} characters
+      </div>
+    </div>
+
+    <!-- Content Field -->
+    <div class="form-group">
+      <label for="content" class="form-label">
+        Content <span class="required">*</span>
+      </label>
+      <div class="textarea-wrapper">
+        <textarea 
+          class="form-textarea" 
+          [class.invalid]="postForm.get('content')?.invalid && postForm.get('content')?.touched"
+          id="content" 
+          rows="12" 
+          formControlName="content" 
+          placeholder="Write your post content here...&#10;&#10;Share your experiences, ask questions, or start a discussion..."></textarea>
+      </div>
+      <div *ngIf="postForm.get('content')?.invalid && postForm.get('content')?.touched" class="error-message">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span>Content must be at least 10 characters long</span>
+      </div>
+      <div class="char-count" *ngIf="postForm.get('content')?.value">
+        {{ postForm.get('content')?.value.length }} characters
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" (click)="cancel()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+        <span>Cancel</span>
+      </button>
+      <button type="submit" class="btn-submit" [disabled]="postForm.invalid || loading">
+        <svg *ngIf="!loading" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <div *ngIf="loading" class="btn-spinner"></div>
+        <span>{{ isEdit ? 'Update Post' : 'Publish Post' }}</span>
+      </button>
+    </div>
+  </form>
+
+  <!-- Tips Card -->
+  <div class="tips-card" *ngIf="!loading">
+    <div class="tips-header">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg>
+      <span>Tips for a great post</span>
+    </div>
+    <ul class="tips-list">
+      <li>Be clear and concise with your title</li>
+      <li>Provide context and details in your content</li>
+      <li>Be respectful and considerate of others</li>
+      <li>Use proper formatting for readability</li>
+    </ul>
+  </div>
+</div>

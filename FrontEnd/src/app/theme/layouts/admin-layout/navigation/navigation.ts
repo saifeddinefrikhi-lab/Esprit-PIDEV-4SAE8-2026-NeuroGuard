@@ -45,43 +45,20 @@ export const NavigationItems: NavigationItem[] = [
     children: [
       {
         id: 'manage-providers',
-        title: 'Healthcare Providers',
+        title: 'Users',
         type: 'item',
-        url: '/admin/providers',
+        url: '/admin/users',
         classes: 'nav-item',
         icon: 'user-add', // Ant Design user-add icon
       },
-      {
-        id: 'manage-caregivers',
-        title: 'Caregivers',
-        type: 'item',
-        url: '/admin/caregivers',
-        classes: 'nav-item',
-        icon: 'team', // Ant Design team icon
-      },
-      {
-        id: 'manage-patients',
-        title: 'Patients',
-        type: 'item',
-        url: '/admin/patients',
-        classes: 'nav-item',
-        icon: 'idcard', // Ant Design idcard icon
-      },
-      {
-        id: 'manage-roles',
-        title: 'Manage Roles',
-        type: 'item',
-        url: '/admin/roles',
-        classes: 'nav-item',
-        icon: 'lock', // Ant Design lock icon
-      },
+   
     ]
   },
   {
     id: 'appointment-management',
     title: 'Appointment Management',
     type: 'group',
-    icon: 'schedule',  // Ant Design schedule icon
+    icon: 'calendar',  // Ant Design calendar icon
     children: [
       {
         id: 'appointments',
@@ -97,7 +74,7 @@ export const NavigationItems: NavigationItem[] = [
         type: 'item',
         classes: 'nav-item',
         url: '/admin/consultations',
-        icon: 'schedule', // Ant Design stethoscope icon
+        icon: 'plus-circle', // Ant Design plus-circle icon
       },
     ]
   },
@@ -105,7 +82,7 @@ export const NavigationItems: NavigationItem[] = [
     id: 'healthcare-management',
     title: 'Healthcare Management',
     type: 'group',
-    icon: 'medicine-box',  // Ant Design medicine-box icon
+    icon: 'health',  // Ant Design health icon
     children: [
       {
         id: 'manage-medications',
@@ -113,7 +90,7 @@ export const NavigationItems: NavigationItem[] = [
         type: 'item',
         url: '/admin/medications',
         classes: 'nav-item',
-        icon: 'medicine-box', // Ant Design medicine-box icon
+        icon: 'experiment', // Ant Design experiment icon (medicine)
       },
       {
         id: 'manage-medical-history',
@@ -131,6 +108,14 @@ export const NavigationItems: NavigationItem[] = [
     type: 'group',
     icon: 'file-pdf',  // Ant Design file-pdf icon
     children: [
+       {
+        id: 'generate-reports',
+        title: 'Forums',
+        type: 'item',
+        url: '/admin/forum', // Path to generate reports
+        classes: 'nav-item',
+        icon: 'file-text', // Ant Design file-text icon
+      },
       {
         id: 'patient-reports',
         title: 'Patient Reports',

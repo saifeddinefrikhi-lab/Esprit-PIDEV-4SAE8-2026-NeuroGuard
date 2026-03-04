@@ -20,7 +20,20 @@ import {
   FontSizeOutline,
   ProfileOutline,
   BgColorsOutline,
-  AntDesignOutline
+  AntDesignOutline,
+  HomeOutline,
+  UserOutline,
+  UserAddOutline,
+  TeamOutline,
+  CalendarOutline,
+  PlusCircleOutline,
+  ExperimentOutline,
+  BookOutline,
+  FileTextOutline,
+  HistoryOutline,
+  BellOutline,
+  BarChartOutline,
+  WarningOutline
 } from '@ant-design/icons-angular/icons';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 
@@ -60,7 +73,20 @@ export class NavContentComponent implements OnInit {
         BgColorsOutline,
         AntDesignOutline,
         ChromeOutline,
-        QuestionOutline
+        QuestionOutline,
+        HomeOutline,
+        UserOutline,
+        UserAddOutline,
+        TeamOutline,
+        CalendarOutline,
+        PlusCircleOutline,
+        ExperimentOutline,
+        BookOutline,
+        FileTextOutline,
+        HistoryOutline,
+        BellOutline,
+        BarChartOutline,
+        WarningOutline
       ]
     );
     this.navigations = NavigationItems;
@@ -99,8 +125,11 @@ export class NavContentComponent implements OnInit {
   }
 
   navMob() {
-    if (this.windowWidth < 1025 && document.querySelector('app-navigation.coded-navbar').classList.contains('mob-open')) {
-      this.NavCollapsedMob.emit();
+    if (this.windowWidth < 1025) {
+      const navbar = document.querySelector('app-navigation.coded-navbar');
+      if (navbar && navbar.classList.contains('mob-open')) {
+        this.NavCollapsedMob.emit();
+      }
     }
   }
 }

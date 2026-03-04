@@ -49,7 +49,7 @@ export const NavigationItems: NavigationItem[] = [
         type: 'item',
         url: '/provider/patients', // Path to manage patients
         classes: 'nav-item',
-        icon: 'idcard', // Ant Design idcard icon
+        icon: 'team', // Ant Design team icon
       },
       {
         id: 'patient-history',
@@ -65,7 +65,7 @@ export const NavigationItems: NavigationItem[] = [
         type: 'item',
         url: '/provider/medications', // Path to manage patient medications
         classes: 'nav-item',
-        icon: 'medicine-box', // Ant Design medicine-box icon
+        icon: 'experiment', // Ant Design experiment icon
       },
     ]
   },
@@ -73,7 +73,7 @@ export const NavigationItems: NavigationItem[] = [
     id: 'appointment-management',
     title: 'Appointment Management',
     type: 'group',
-    icon: 'schedule', // Ant Design schedule icon
+    icon: 'calendar', // Ant Design calendar icon
     children: [
       {
         id: 'schedule-appointments',
@@ -97,7 +97,7 @@ export const NavigationItems: NavigationItem[] = [
     id: 'consultation-management',
     title: 'Consultation Management',
     type: 'group',
-    icon: 'schedule', // Ant Design schedule icon
+    icon: 'calendar', // Ant Design calendar icon
     children: [
       {
         id: 'consultation-schedule',
@@ -105,7 +105,7 @@ export const NavigationItems: NavigationItem[] = [
         type: 'item',
         url: '/provider/consultations/schedule', // Path to schedule consultations
         classes: 'nav-item',
-        icon: 'schedule', // Ant Design schedule icon
+        icon: 'plus-circle', // Ant Design plus-circle icon
       },
       {
         id: 'consultation-history', 
@@ -149,9 +149,9 @@ export const NavigationItems: NavigationItem[] = [
     children: [
       {
         id: 'generate-reports',
-        title: 'Generate Reports',
+        title: 'Forums',
         type: 'item',
-        url: '/provider/reports/generate', // Path to generate reports
+        url: '/provider/forum', // Path to generate reports
         classes: 'nav-item',
         icon: 'file-text', // Ant Design file-text icon
       },

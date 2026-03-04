@@ -23,11 +23,15 @@ import {
   AntDesignOutline,
   HomeOutline,
   UserOutline,
+  UserAddOutline,
+  TeamOutline,
   IdcardOutline,
   BookOutline,
   MedicineBoxOutline,
   ScheduleOutline,
   CalendarOutline,
+  PlusCircleOutline,
+  ExperimentOutline,
   HistoryOutline,
   AlertOutline,
   WarningOutline,
@@ -77,11 +81,15 @@ export class NavContentComponent implements OnInit {
         QuestionOutline,
         HomeOutline,
         UserOutline,
+        UserAddOutline,
+        TeamOutline,
         IdcardOutline,
         BookOutline,
         MedicineBoxOutline,
         ScheduleOutline,
         CalendarOutline,
+        PlusCircleOutline,
+        ExperimentOutline,
         HistoryOutline,
         AlertOutline,
         WarningOutline,
@@ -127,8 +135,11 @@ export class NavContentComponent implements OnInit {
   }
 
   navMob() {
-    if (this.windowWidth < 1025 && document.querySelector('app-navigation.coded-navbar').classList.contains('mob-open')) {
-      this.NavCollapsedMob.emit();
+    if (this.windowWidth < 1025) {
+      const navbar = document.querySelector('app-navigation.coded-navbar');
+      if (navbar && navbar.classList.contains('mob-open')) {
+        this.NavCollapsedMob.emit();
+      }
     }
   }
 }
