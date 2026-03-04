@@ -56,9 +56,23 @@ export class PostListComponent implements OnInit {
         this.cdr.markForCheck();
       },
       error: () => {
-        this.error = 'Failed to load posts.';
-        this.loading = false;
-        this.cdr.markForCheck();
+        // Fallback: try non-paged API when paged endpoint fails (e.g. gateway or backend issue)
+        this.forumService.getAllPosts().pipe(observeOn(asyncScheduler)).subscribe({
+          next: (data) => {
+            this.totalElements = data.length;
+            this.totalPages = Math.max(1, Math.ceil(data.length / this.pageSize));
+            const start = this.currentPage * this.pageSize;
+            this.posts = data.slice(start, start + this.pageSize);
+            this.resolvePostUsernames();
+            this.loading = false;
+            this.cdr.markForCheck();
+          },
+          error: () => {
+            this.error = 'Failed to load posts.';
+            this.loading = false;
+            this.cdr.markForCheck();
+          }
+        });
       }
     });
   }
