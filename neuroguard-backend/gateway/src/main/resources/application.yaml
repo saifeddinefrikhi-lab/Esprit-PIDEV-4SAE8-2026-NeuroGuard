@@ -24,10 +24,12 @@ spring:
               - PUT
               - DELETE
               - OPTIONS
+              - PATCH
             allowedHeaders:
               - "*"
             allowCredentials: true
       routes:
+        # user-service routes
         - id: user-auth
           uri: lb://user-service
           predicates:
@@ -36,6 +38,8 @@ spring:
           uri: lb://user-service
           predicates:
             - Path=/users/**
+
+        # medical-history-service routes
         - id: medical-provider
           uri: lb://medical-history-service
           predicates:
@@ -56,10 +60,26 @@ spring:
           uri: lb://medical-history-service
           predicates:
             - Path=/test
+
+        # forum-service routes
         - id: forum-service
           uri: lb://forum-service
           predicates:
-            - Path=/api/posts/**      # Matches all forum endpoints
+            - Path=/api/posts/**
+
+        # risk-alert-service routes
+        - id: risk-patient
+          uri: lb://risk-alert-service
+          predicates:
+            - Path=/api/patient/alerts/**
+        - id: risk-caregiver
+          uri: lb://risk-alert-service
+          predicates:
+            - Path=/api/caregiver/alerts/**
+        - id: risk-provider
+          uri: lb://risk-alert-service
+          predicates:
+            - Path=/api/provider/alerts/**
 
 logging:
   level:

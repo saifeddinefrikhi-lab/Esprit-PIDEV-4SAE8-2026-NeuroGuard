@@ -1,0 +1,295 @@
+.alerts-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 2rem;
+
+  .alerts-header {
+    margin-bottom: 2.5rem;
+
+    .header-content {
+      text-align: center;
+      
+      .alerts-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+
+        i {
+          font-size: 3rem;
+          color: #5e72e4;
+        }
+      }
+
+      .alerts-subtitle {
+        font-size: 1.1rem;
+        color: #6c757d;
+        margin: 0;
+      }
+    }
+  }
+
+  .alerts-body {
+    max-width: 1200px;
+    margin: 0 auto;
+
+    // Loading State
+    .loading-state {
+      text-align: center;
+      padding: 4rem 2rem;
+
+      .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #5e72e4;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+      }
+
+      p {
+        color: #6c757d;
+        font-size: 1.1rem;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    }
+
+    // Alert Messages
+    .alert-message {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      font-weight: 500;
+      animation: slideIn 0.3s ease-out;
+
+      i {
+        font-size: 1.5rem;
+      }
+
+      &.error-message {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+      }
+
+      &.success-message {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+      }
+    }
+
+    // Empty State
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+
+      i {
+        font-size: 5rem;
+        color: #dee2e6;
+        margin-bottom: 1rem;
+      }
+
+      h3 {
+        font-size: 1.5rem;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+      }
+
+      p {
+        color: #6c757d;
+        font-size: 1rem;
+      }
+    }
+
+    // Alerts Grid
+    .alerts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 1.5rem;
+      animation: fadeIn 0.5s ease-out;
+
+      .alert-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+        position: relative;
+        overflow: hidden;
+
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 4px;
+          background: linear-gradient(90deg, #5e72e4, #825ee4);
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+
+        &:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+
+          &::before {
+            opacity: 1;
+          }
+        }
+
+        &.resolved {
+          opacity: 0.7;
+          background: #f8f9fa;
+        }
+
+        .alert-card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1rem;
+
+          .severity-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+
+            i {
+              font-size: 1rem;
+            }
+
+            &.severity-critical {
+              background: linear-gradient(135deg, #fc5c7d 0%, #e63946 100%);
+              color: white;
+            }
+
+            &.severity-warning {
+              background: linear-gradient(135deg, #f9d423 0%, #f83600 100%);
+              color: white;
+            }
+
+            &.severity-info {
+              background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+              color: white;
+            }
+          }
+
+          .alert-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #fff3cd;
+            color: #856404;
+
+            &.resolved {
+              background: #d4edda;
+              color: #155724;
+            }
+
+            i {
+              font-size: 0.9rem;
+            }
+          }
+        }
+
+        .alert-card-body {
+          .alert-message {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+            background: none;
+            padding: 0;
+            border-radius: 0;
+            animation: none;
+          }
+
+          .alert-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+
+            .meta-item {
+              display: inline-flex;
+              align-items: center;
+              gap: 0.4rem;
+              font-size: 0.875rem;
+              color: #6c757d;
+
+              i {
+                font-size: 1rem;
+                color: #5e72e4;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .alerts-container {
+    padding: 1rem;
+
+    .alerts-header .header-content .alerts-title {
+      font-size: 2rem;
+      
+      i {
+        font-size: 2.5rem;
+      }
+    }
+
+    .alerts-body .alerts-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}

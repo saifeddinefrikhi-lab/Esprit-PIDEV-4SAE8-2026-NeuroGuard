@@ -1,0 +1,178 @@
+<div class="alerts-container provider">
+  <div class="alerts-header">
+    <div class="header-content">
+      <h1 class="alerts-title">
+        <i class="ti ti-stethoscope"></i>
+        Alert Management
+      </h1>
+      <p class="alerts-subtitle">Create, monitor, and manage patient alerts</p>
+    </div>
+  </div>
+
+  <div class="alerts-body">
+    <!-- Success/Error Messages -->
+    <div *ngIf="successMessage" class="alert-message success-message">
+      <i class="ti ti-circle-check"></i>
+      <span>{{ successMessage }}</span>
+    </div>
+    <div *ngIf="error" class="alert-message error-message">
+      <i class="ti ti-alert-circle"></i>
+      <span>{{ error }}</span>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="control-panel">
+      <div class="patient-selector">
+        <label for="patientSelect" class="selector-label">
+          <i class="ti ti-user-search"></i>
+          Select Patient
+        </label>
+        <select id="patientSelect" class="modern-select" (change)="onPatientSelect($any($event.target).value)">
+          <option value="">-- Choose a patient --</option>
+          <option *ngFor="let p of patients" [value]="p.id">{{ p.firstName }} {{ p.lastName }}</option>
+        </select>
+      </div>
+      <div class="action-buttons">
+        <button class="btn-modern primary" (click)="newAlert()" [disabled]="!selectedPatientId">
+          <i class="ti ti-plus"></i>
+          New Alert
+        </button>
+        <button class="btn-modern secondary" (click)="triggerGeneration()">
+          <i class="ti ti-refresh"></i>
+          Auto-Generate
+        </button>
+      </div>
+    </div>
+
+    <!-- Alert Form -->
+    <div *ngIf="showForm" class="alert-form-card">
+      <div class="form-header">
+        <h3>
+          <i class="ti" [class]="editingAlertId ? 'ti-edit' : 'ti-plus'"></i>
+          {{ editingAlertId ? 'Edit Alert' : 'Create New Alert' }}
+        </h3>
+        <button class="btn-close" (click)="cancelForm()">
+          <i class="ti ti-x"></i>
+        </button>
+      </div>
+      <form [formGroup]="alertForm" (ngSubmit)="onSubmit()" class="modern-form">
+        <div class="form-group">
+          <label for="patientId">
+            <i class="ti ti-user"></i>
+            Patient
+          </label>
+          <select id="patientId" formControlName="patientId" class="modern-input">
+            <option value="">Select patient...</option>
+            <option *ngFor="let p of patients" [value]="p.id">{{ p.firstName }} {{ p.lastName }}</option>
+          </select>
+          <span *ngIf="alertForm.get('patientId')?.invalid && alertForm.get('patientId')?.touched" class="error-text">
+            Patient is required
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="severity">
+            <i class="ti ti-flag"></i>
+            Severity Level
+          </label>
+          <select id="severity" formControlName="severity" class="modern-input">
+            <option value="INFO">Info</option>
+            <option value="WARNING">Warning</option>
+            <option value="CRITICAL">Critical</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="message">
+            <i class="ti ti-message"></i>
+            Alert Message
+          </label>
+          <textarea id="message" formControlName="message" class="modern-input" rows="4" 
+                    placeholder="Enter alert message..."></textarea>
+          <span *ngIf="alertForm.get('message')?.invalid && alertForm.get('message')?.touched" class="error-text">
+            Message is required (max 500 characters)
+          </span>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-modern primary" [disabled]="alertForm.invalid">
+            <i class="ti" [class]="editingAlertId ? 'ti-device-floppy' : 'ti-plus'"></i>
+            {{ editingAlertId ? 'Update Alert' : 'Create Alert' }}
+          </button>
+          <button type="button" class="btn-modern secondary" (click)="cancelForm()">
+            <i class="ti ti-x"></i>
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Alerts Section -->
+    <div class="alerts-section" *ngIf="selectedPatientId">
+      <h2 class="section-title">
+        <i class="ti ti-list-details"></i>
+        Patient Alerts
+      </h2>
+
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading alerts...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!loading && alerts.length === 0" class="empty-state">
+        <i class="ti ti-bell-off"></i>
+        <h3>No alerts found</h3>
+        <p>This patient has no active alerts at the moment.</p>
+      </div>
+
+      <!-- Alerts Grid -->
+      <div *ngIf="!loading && alerts.length > 0" class="alerts-grid">
+        <div *ngFor="let alert of alerts" class="alert-card provider-card" [class.resolved]="alert.resolved">
+          <div class="alert-card-header">
+            <span class="severity-badge" [class]="'severity-' + alert.severity.toLowerCase()">
+              <i class="ti" [class]="getSeverityIcon(alert.severity)"></i>
+              {{ alert.severity }}
+            </span>
+            <span class="alert-status" [class.resolved]="alert.resolved">
+              <i class="ti" [class]="alert.resolved ? 'ti-circle-check' : 'ti-clock'"></i>
+              {{ alert.resolved ? 'Resolved' : 'Pending' }}
+            </span>
+          </div>
+          
+          <div class="alert-card-body">
+            <h3 class="alert-message">{{ alert.message }}</h3>
+            <div class="alert-meta">
+              <span class="meta-item">
+                <i class="ti ti-user"></i>
+                {{ alert.patientName }}
+              </span>
+              <span class="meta-item">
+                <i class="ti ti-calendar"></i>
+                {{ alert.createdAt | date:'MMM d, y' }}
+              </span>
+              <span class="meta-item">
+                <i class="ti ti-clock"></i>
+                {{ alert.createdAt | date:'shortTime' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="alert-card-actions">
+            <button class="action-btn edit" (click)="editAlert(alert)" title="Edit">
+              <i class="ti ti-edit"></i>
+            </button>
+            <button class="action-btn resolve" (click)="resolveAlert(alert.id)" 
+                    [disabled]="alert.resolved" title="Mark as Resolved">
+              <i class="ti ti-circle-check"></i>
+            </button>
+            <button class="action-btn delete" (click)="deleteAlert(alert.id)" title="Delete">
+              <i class="ti ti-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

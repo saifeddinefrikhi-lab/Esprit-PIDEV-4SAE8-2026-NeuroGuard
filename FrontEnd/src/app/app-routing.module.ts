@@ -29,14 +29,7 @@ export const routes: Routes = [
         path: 'admin/users',
         loadComponent: () => import('./Back-office/pages/user-list.component/user-list.component').then((c) => c.UserListComponent)
       },
-      {
-        path: 'admin/caregivers',
-        loadComponent: () => import('./Back-office/pages/caregiver-management/caregiver-management').then((c) => c.CaregiverManagement)
-      },
-      {
-        path: 'admin/patients',
-        loadComponent: () => import('./Back-office/pages/patient-management/patient-management').then((c) => c.PatientManagement)
-      },
+    
       {
         path: 'admin/forum',
         loadComponent: () => import('./pages/post-list.component/post-list.component').then((c) => c.PostListComponent)
@@ -70,6 +63,12 @@ export const routes: Routes = [
         path: 'patient/medical-history',
         loadComponent: () => import('./Front-office/patient/patient-medical-history/patient-medical-history').then((c) => c.PatientMedicalHistoryComponent)
       },
+
+      {
+        path: 'patient/alerts',
+        loadComponent: () => import('./Front-office/patient/patient-alerts.component/patient-alerts.component').then((c) => c.PatientAlertsComponent)
+      },
+
        {
         path: 'patient/forum',
         loadComponent: () => import('./pages/post-list.component/post-list.component').then((c) => c.PostListComponent)
@@ -108,6 +107,12 @@ export const routes: Routes = [
         path: 'caregiver/medical-history/view/:patientId',
         loadComponent: () => import('./Front-office/caregiver/caregiver-patient-detail/caregiver-patient-detail').then((c) => c.CaregiverPatientDetailComponent)
       },
+      
+      {
+        path: 'caregiver/alerts',
+        loadComponent: () => import('./Front-office/caregiver/caregiver-alerts.component/caregiver-alerts.component').then((c) => c.CaregiverAlertsComponent)
+      },
+
       {
         path: 'caregiver/forum',
         loadComponent: () => import('./pages/post-list.component/post-list.component').then((c) => c.PostListComponent)
@@ -124,6 +129,7 @@ export const routes: Routes = [
         path: 'caregiver/forum/:id',
         loadComponent: () => import('./pages/post-detail.component/post-detail.component').then((c) => c.PostDetailComponent)
       },
+    
     ]
   },
 
@@ -154,6 +160,12 @@ export const routes: Routes = [
         path: 'provider/medical-history/view/:patientId',
         loadComponent: () => import('./Front-office/healthcare-provider/provider-medical-history-detail/provider-medical-history-detail').then((c) => c.ProviderMedicalHistoryDetailComponent)
       },
+
+      {
+        path: 'provider/alerts',
+        loadComponent: () => import('./Front-office/healthcare-provider/provider-alerts.component/provider-alerts.component').then((c) => c.ProviderAlertsComponent)
+      },
+
       {
         path: 'provider/forum',
         loadComponent: () => import('./pages/post-list.component/post-list.component').then((c) => c.PostListComponent)

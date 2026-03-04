@@ -72,7 +72,7 @@ export const NavigationItems: NavigationItem[] = [
         title: 'Alerts',
         type: 'item',
         classes: 'nav-item',
-        url: '/caregiver/alerts', // Path to manage alerts for caregivers
+        url: '/caregiver/alerts', // Path to manage alerts for caregivers 
         icon: 'bell', // Ant Design bell icon
       },
     ]

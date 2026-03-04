@@ -1,0 +1,66 @@
+<div class="alerts-container">
+  <div class="alerts-header">
+    <div class="header-content">
+      <h1 class="alerts-title">
+        <i class="ti ti-heartbeat"></i>
+        Patient Alerts
+      </h1>
+      <p class="alerts-subtitle">Monitor alerts for all patients under your care</p>
+    </div>
+  </div>
+
+  <div class="alerts-body">
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading patient alerts...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !loading" class="alert-message error-message">
+      <i class="ti ti-alert-circle"></i>
+      <span>{{ error }}</span>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && alerts.length === 0 && !error" class="empty-state">
+      <i class="ti ti-bell-off"></i>
+      <h3>No alerts for your patients</h3>
+      <p>All patients are doing well. We'll notify you of any concerns.</p>
+    </div>
+
+    <!-- Alerts Grid -->
+    <div *ngIf="!loading && alerts.length > 0" class="alerts-grid">
+      <div *ngFor="let alert of alerts" class="alert-card" [class.resolved]="alert.resolved">
+        <div class="alert-card-header">
+          <span class="severity-badge" [class]="'severity-' + alert.severity.toLowerCase()">
+            <i class="ti" [class]="getSeverityIcon(alert.severity)"></i>
+            {{ alert.severity }}
+          </span>
+          <span class="alert-status" [class.resolved]="alert.resolved">
+            <i class="ti" [class]="alert.resolved ? 'ti-circle-check' : 'ti-clock'"></i>
+            {{ alert.resolved ? 'Resolved' : 'Pending' }}
+          </span>
+        </div>
+        
+        <div class="alert-card-body">
+          <h3 class="alert-message">{{ alert.message }}</h3>
+          <div class="alert-meta">
+            <span class="meta-item">
+              <i class="ti ti-user"></i>
+              {{ alert.patientName }}
+            </span>
+            <span class="meta-item">
+              <i class="ti ti-calendar"></i>
+              {{ alert.createdAt | date:'MMM d, y' }}
+            </span>
+            <span class="meta-item">
+              <i class="ti ti-clock"></i>
+              {{ alert.createdAt | date:'shortTime' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -128,7 +128,7 @@ export const NavigationItems: NavigationItem[] = [
         title: 'Critical Alerts',
         type: 'item',
         classes: 'nav-item',
-        url: '/provider/alerts/critical', // Path to view critical alerts
+        url: '/provider/alerts', // Path to view critical alerts
         icon: 'warning', // Ant Design warning icon
       },
       {
