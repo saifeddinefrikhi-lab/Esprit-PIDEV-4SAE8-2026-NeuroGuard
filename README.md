@@ -279,14 +279,12 @@ The system follows a microservices architecture with service discovery and an AP
 This project was developed by a dedicated team of students and supervised by experienced faculty members.
 
 ### Development Team
-- 👨‍💻 **Saif Eddine Ben Hadj Youssef** – Lead Developer
-- 👨‍💻 **[Team Member 2]** – Frontend Developer
-- 👨‍💻 **[Team Member 3]** – Backend Developer
-- 👨‍💻 **[Team Member 4]** – UI/UX Designer
-
-### Academic Supervision
-- 👨‍🏫 **[Supervisor Name]** – Project Supervisor
-- 🏛️ **[Institution Name]** – Academic Institution
+- 👨‍💻 **Saif Eddine Frikhi** 
+- 👨‍💻 **Ameni Ferjeni** 
+- 👨‍💻 **Hamza Znaidi** 
+- 👨‍💻 **Jihen Ben AMMAR**
+- 👨‍💻 **Nour Trabelsi**
+- 👨‍💻 **Eya Ezzedine**
 
 ---
 
@@ -296,11 +294,11 @@ This project is developed as part of an **Integrated Project (Projet Intégré)*
 
 **Project Details:**
 - 📚 **Course:** Integrated Project - Software Engineering
-- 🏫 **Institution:** [Your Institution Name]
+- 🏫 **Institution:**  Esprit School of Engineering
 - 📅 **Academic Year:** 2025-2026
 - 🎯 **Subject:** Application intelligente pour la détection des risques de la maladie d'Alzheimer
-- ⏱️ **Duration:** [Project Duration]
-- 🎓 **Level:** [Degree Level - e.g., License, Master]
+- ⏱️ **Duration:** 4 months
+- 🎓 **Level:** 4rd SAE
 
 **Learning Objectives:**
 - Full-stack web application development
