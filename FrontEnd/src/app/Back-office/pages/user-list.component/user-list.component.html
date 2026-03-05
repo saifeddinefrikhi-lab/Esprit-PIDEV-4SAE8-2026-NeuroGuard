@@ -1,0 +1,233 @@
+<div class="user-page">
+  <div class="page-header">
+    <div>
+      <h2>User Management</h2>
+      <p class="subtitle">Manage platform users, roles, and profile information</p>
+    </div>
+    <button class="primary-btn" (click)="openCreateForm()" [disabled]="isSubmitting">+ Add User</button>
+  </div>
+
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="search-filter-section">
+    <div class="search-box">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input 
+        type="text" 
+        placeholder="Search by username, email, or name..." 
+        [(ngModel)]="searchQuery" 
+        (input)="onSearchChange()"
+        class="search-input">
+    </div>
+
+    <div class="filter-controls">
+      <select [(ngModel)]="selectedRole" (change)="onRoleFilterChange()" class="filter-select">
+        <option value="">All Roles</option>
+        <option value="ADMIN">Admin</option>
+        <option value="PATIENT">Patient</option>
+        <option value="PROVIDER">Provider</option>
+        <option value="CAREGIVER">Caregiver</option>
+      </select>
+
+      <button *ngIf="searchQuery || selectedRole" (click)="clearFilters()" class="clear-btn">
+        Clear Filters
+      </button>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-card__head">
+      <h3>Users</h3>
+      <span class="count-pill">{{ filteredUsers.length }} of {{ users.length }} total</span>
+    </div>
+
+    <div class="table-wrap" *ngIf="filteredUsers.length; else emptyState">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Role</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of filteredUsers">
+            <td>#{{ user.id }}</td>
+            <td class="fw-medium">{{ user.username }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.firstName }}</td>
+            <td>{{ user.lastName }}</td>
+            <td>
+              <span class="role-badge" [ngClass]="user.role.toLowerCase()">{{ user.role }}</span>
+            </td>
+            <td>
+              <div class="actions">
+                <button class="action-btn edit" (click)="openEditForm(user)">Edit</button>
+                <button class="action-btn delete" (click)="deleteUser(user.id)">Delete</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #emptyState>
+      <div class="empty-state">
+        <h4 *ngIf="users.length === 0">No users yet</h4>
+        <h4 *ngIf="users.length > 0 && filteredUsers.length === 0">No users match your filters</h4>
+        <p *ngIf="users.length === 0">Start by adding your first user account.</p>
+        <button *ngIf="users.length > 0 && filteredUsers.length === 0" (click)="clearFilters()" class="ghost-btn">
+          Clear Filters
+        </button>
+      </div>
+    </ng-template>
+  </div>
+
+  <div *ngIf="showForm" class="modal" (click)="closeForm()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ isEditing ? 'Edit User' : 'Create User' }}</h3>
+        <button type="button" class="close-btn" (click)="closeForm()">×</button>
+      </div>
+
+      <form (ngSubmit)="saveUser()" class="form-grid" #form="ngForm" novalidate>
+        <label>
+          <span>First Name <span class="required">*</span></span>
+          <input 
+            #firstNameCtrl="ngModel"
+            [(ngModel)]="formData.firstName" 
+            name="firstName" 
+            required
+            [disabled]="isSubmitting"
+            class="form-input">
+          <small class="error" *ngIf="firstNameCtrl.invalid && firstNameCtrl.touched">First name is required</small>
+        </label>
+
+        <label>
+          <span>Last Name <span class="required">*</span></span>
+          <input 
+            #lastNameCtrl="ngModel"
+            [(ngModel)]="formData.lastName" 
+            name="lastName" 
+            required
+            [disabled]="isSubmitting"
+            class="form-input">
+          <small class="error" *ngIf="lastNameCtrl.invalid && lastNameCtrl.touched">Last name is required</small>
+        </label>
+
+        <label>
+          <span>Username <span class="required">*</span></span>
+          <input 
+            #usernameCtrl="ngModel"
+            [(ngModel)]="formData.username" 
+            name="username" 
+            required
+            [disabled]="isSubmitting"
+            class="form-input">
+          <small class="error" *ngIf="usernameCtrl.invalid && usernameCtrl.touched">Username is required</small>
+        </label>
+
+        <label>
+          <span>Email <span class="required">*</span></span>
+          <input 
+            #emailCtrl="ngModel"
+            type="email" 
+            [(ngModel)]="formData.email" 
+            name="email" 
+            required
+            [disabled]="isSubmitting"
+            class="form-input">
+          <small class="error" *ngIf="emailCtrl.invalid && emailCtrl.touched">Valid email is required</small>
+        </label>
+
+        <label>
+          <span>Phone</span>
+          <input 
+            [(ngModel)]="formData.phoneNumber" 
+            name="phoneNumber"
+            [disabled]="isSubmitting"
+            class="form-input">
+        </label>
+
+        <label>
+          <span>Gender</span>
+          <select 
+            [(ngModel)]="formData.gender" 
+            name="gender"
+            [disabled]="isSubmitting"
+            class="form-input">
+            <option value="">--Select--</option>
+            <option value="M">Male</option>
+            <option value="F">Female</option>
+            <option value="O">Other</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Age</span>
+          <input 
+            type="number" 
+            [(ngModel)]="formData.age" 
+            name="age"
+            [disabled]="isSubmitting"
+            class="form-input">
+        </label>
+
+        <label>
+          <span>Role <span class="required">*</span></span>
+          <select 
+            #roleCtrl="ngModel"
+            [(ngModel)]="formData.role" 
+            name="role" 
+            required
+            [disabled]="isSubmitting"
+            class="form-input">
+            <option value="">--Select Role--</option>
+            <option value="ADMIN">Admin</option>
+            <option value="PATIENT">Patient</option>
+            <option value="PROVIDER">Provider</option>
+            <option value="CAREGIVER">Caregiver</option>
+          </select>
+          <small class="error" *ngIf="roleCtrl.invalid && roleCtrl.touched">Role is required</small>
+        </label>
+
+        <label class="full-width">
+          <span>Password <span class="required" *ngIf="!isEditing">*</span></span>
+          <input 
+            #passwordCtrl="ngModel"
+            type="password" 
+            [(ngModel)]="formData.password" 
+            name="password" 
+            [required]="!isEditing"
+            [disabled]="isSubmitting"
+            class="form-input"
+            [placeholder]="isEditing ? 'Leave empty to keep current password' : 'Enter password'">
+          <small class="error" *ngIf="passwordCtrl.invalid && passwordCtrl.touched">
+            {{ !isEditing ? 'Password is required' : 'Password is invalid' }}
+          </small>
+          <small class="hint" *ngIf="isEditing">Leave empty to keep the current password</small>
+        </label>
+
+        <div class="form-actions full-width">
+          <button type="button" class="ghost-btn" (click)="closeForm()" [disabled]="isSubmitting">Cancel</button>
+          <button type="submit" class="primary-btn" [disabled]="isSubmitting || form.invalid">
+            {{ isSubmitting ? 'Saving...' : 'Save' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

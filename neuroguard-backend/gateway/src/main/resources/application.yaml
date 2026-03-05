@@ -1,0 +1,87 @@
+server:
+  port: 8083
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    registry-fetch-interval-seconds: 5
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:4200"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - PATCH
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+      routes:
+        # user-service routes
+        - id: user-auth
+          uri: lb://user-service
+          predicates:
+            - Path=/auth/**
+        - id: user-users
+          uri: lb://user-service
+          predicates:
+            - Path=/users/**
+
+        # medical-history-service routes
+        - id: medical-provider
+          uri: lb://medical-history-service
+          predicates:
+            - Path=/api/provider/medical-history/**
+        - id: medical-patient
+          uri: lb://medical-history-service
+          predicates:
+            - Path=/api/patient/medical-history/**
+        - id: medical-caregiver
+          uri: lb://medical-history-service
+          predicates:
+            - Path=/api/caregiver/medical-history/**
+        - id: medical-files
+          uri: lb://medical-history-service
+          predicates:
+            - Path=/files/**
+        - id: medical-test
+          uri: lb://medical-history-service
+          predicates:
+            - Path=/test
+
+        # forum-service routes
+        - id: forum-service
+          uri: lb://forum-service
+          predicates:
+            - Path=/api/posts/**
+
+        # risk-alert-service routes
+        - id: risk-patient
+          uri: lb://risk-alert-service
+          predicates:
+            - Path=/api/patient/alerts/**
+        - id: risk-caregiver
+          uri: lb://risk-alert-service
+          predicates:
+            - Path=/api/caregiver/alerts/**
+        - id: risk-provider
+          uri: lb://risk-alert-service
+          predicates:
+            - Path=/api/provider/alerts/**
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty.http.client: DEBUG

@@ -1,0 +1,103 @@
+<div class="auth-wrapper form-wrapper">
+  <div class="auth-form">
+    <div class="card auth-card">
+      <div class="card-body auth-card-body">
+        <!-- Header -->
+        <div class="auth-header">
+          <div>
+            <h3 class="auth-title">{{ isEdit ? 'Edit Post' : 'Create New Post' }}</h3>
+            <p class="auth-subtitle">{{ isEdit ? 'Update your post content' : 'Share your thoughts with the community' }}</p>
+          </div>
+        </div>
+
+        <!-- Success Alert -->
+        <div class="alert alert-success alert-dismissible fade show" role="alert" *ngIf="successMessage">
+          <i class="ti ti-check-circle me-2"></i>
+          {{ successMessage }}
+          <button type="button" class="btn-close" (click)="clearMessages()" aria-label="Close"></button>
+        </div>
+
+        <!-- Error Alert -->
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="errorMessage">
+          <i class="ti ti-alert-circle me-2"></i>
+          <strong>Error!</strong> {{ errorMessage }}
+          <button type="button" class="btn-close" (click)="clearMessages()" aria-label="Close"></button>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-state" *ngIf="loading">
+          <div class="spinner"></div>
+          <p>{{ isEdit ? 'Updating post...' : 'Creating post...' }}</p>
+        </div>
+
+        <!-- Form -->
+        <form [formGroup]="postForm" (ngSubmit)="onSubmit()" *ngIf="!loading">
+          <!-- Title Field -->
+          <div class="form-group mb-3">
+            <label class="form-label" for="title">Title<span class="text-danger">*</span></label>
+            <input 
+              type="text" 
+              class="form-control" 
+              [class.is-invalid]="submitted && f['title'].invalid"
+              [class.is-valid]="submitted && f['title'].valid"
+              id="title" 
+              formControlName="title" 
+              placeholder="Enter a descriptive title..."
+              maxlength="{{ TITLE_MAX_LENGTH }}"
+            />
+            <div class="invalid-feedback" *ngIf="submitted && f['title'].invalid">
+              {{ getFieldErrorMessage('title') }}
+            </div>
+            <small class="text-muted" *ngIf="f['title'].value">
+              {{ f['title'].value.length }} / {{ TITLE_MAX_LENGTH }} characters
+            </small>
+          </div>
+
+          <!-- Content Field -->
+          <div class="form-group mb-3">
+            <label class="form-label" for="content">Content<span class="text-danger">*</span></label>
+            <textarea 
+              class="form-control" 
+              [class.is-invalid]="submitted && f['content'].invalid"
+              [class.is-valid]="submitted && f['content'].valid"
+              id="content" 
+              rows="8" 
+              formControlName="content" 
+              placeholder="Write your post content here...&#10;&#10;Share your experiences, ask questions, or start a discussion..."
+              maxlength="{{ CONTENT_MAX_LENGTH }}"></textarea>
+            <div class="invalid-feedback" *ngIf="submitted && f['content'].invalid">
+              {{ getFieldErrorMessage('content') }}
+            </div>
+            <small class="text-muted" *ngIf="f['content'].value">
+              {{ f['content'].value.length }} / {{ CONTENT_MAX_LENGTH }} characters
+            </small>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="d-flex gap-2 justify-content-end mt-4">
+            <button type="button" class="btn btn-secondary" (click)="cancel()">
+              <i class="ti ti-x me-2"></i>Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="postForm.invalid || loading">
+              <i class="ti ti-check me-2"></i>{{ isEdit ? 'Update Post' : 'Publish Post' }}
+            </button>
+          </div>
+        </form>
+
+        <!-- Tips Card -->
+        <div class="tips-card mt-4" *ngIf="!loading">
+          <div class="tips-header">
+            <i class="ti ti-info-circle me-2"></i>
+            <span>Tips for a great post</span>
+          </div>
+          <ul class="tips-list">
+            <li>Be clear and concise with your title</li>
+            <li>Provide context and details in your content</li>
+            <li>Be respectful and considerate of others</li>
+            <li>Use proper formatting for readability</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
