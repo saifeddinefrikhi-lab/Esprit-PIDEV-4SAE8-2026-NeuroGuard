@@ -1,0 +1,69 @@
+<div class="container mt-4">
+  <div class="page-header d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 class="mb-0">Mes disponibilités</h2>
+      <p class="text-muted small mb-0">Définissez vos créneaux horaires pour les consultations</p>
+    </div>
+    <button class="btn btn-primary" (click)="openCreate()">+ Ajouter une disponibilité</button>
+  </div>
+
+  <div *ngIf="loading" class="alert alert-info">Chargement...</div>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <div class="card mb-4" *ngIf="showForm">
+    <div class="card-header">{{ editingId ? 'Modifier' : 'Ajouter' }} une plage horaire</div>
+    <div class="card-body">
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <label class="form-label">Jour</label>
+            <select class="form-select" formControlName="dayOfWeek">
+              <option *ngFor="let d of DAYS" [value]="d">{{ getDayName(d) }}</option>
+            </select>
+          </div>
+          <div class="col-md-4 mb-3">
+            <label class="form-label">Heure de début</label>
+            <input type="time" class="form-control" formControlName="startTime">
+          </div>
+          <div class="col-md-4 mb-3">
+            <label class="form-label">Heure de fin</label>
+            <input type="time" class="form-control" formControlName="endTime">
+            <div *ngIf="form.errors?.['endBeforeStart']" class="invalid-feedback d-block">L'heure de fin doit être après l'heure de début.</div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-success">{{ editingId ? 'Modifier' : 'Ajouter' }}</button>
+        <button type="button" class="btn btn-secondary ms-2" (click)="cancel()">Annuler</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card" *ngIf="!loading && !error">
+    <div class="card-header">Plages horaires</div>
+    <div class="card-body p-0">
+      <table class="table table-striped mb-0" *ngIf="availabilities.length > 0">
+        <thead>
+          <tr>
+            <th>Jour</th>
+            <th>Heure de début</th>
+            <th>Heure de fin</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let av of availabilities">
+            <td>{{ getDayName(av.dayOfWeek) }}</td>
+            <td>{{ av.startTime?.substring(0, 5) }}</td>
+            <td>{{ av.endTime?.substring(0, 5) }}</td>
+            <td>
+              <button class="btn btn-sm btn-warning me-1" (click)="openEdit(av)">Modifier</button>
+              <button class="btn btn-sm btn-danger" (click)="delete(av.id)">Supprimer</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="availabilities.length === 0" class="p-4 text-center text-muted">
+        Aucune disponibilité définie. Cliquez sur "Ajouter une disponibilité" pour commencer.
+      </div>
+    </div>
+  </div>
+</div>

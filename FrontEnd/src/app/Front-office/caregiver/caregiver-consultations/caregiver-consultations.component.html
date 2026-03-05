@@ -1,0 +1,156 @@
+<div class="container mt-4">
+  <div class="page-header d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 class="mb-0">Mes consultations</h2>
+      <p class="text-muted small mb-0">Consultations des patients dont vous avez la charge</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-success" (click)="openCreateForm()">
+        <span class="me-1">+</span> Nouvelle consultation
+      </button>
+      <button class="btn btn-primary" (click)="loadConsultations()">
+        <span class="me-1">↻</span> Actualiser
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="alert alert-info">Chargement en cours...</div>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <!-- Formulaire création consultation -->
+  <div class="card mb-4" *ngIf="showForm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>Nouvelle consultation</span>
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cancelForm()">Annuler</button>
+    </div>
+    <div class="card-body">
+      <p class="text-muted small mb-3">
+        Sélectionnez un médecin/infirmier et un créneau dans ses disponibilités. La consultation ne peut être créée que pendant les créneaux déclarés par le médecin.
+      </p>
+      <form [formGroup]="consultationForm" (ngSubmit)="onCreateSubmit()">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Médecin / Infirmier <span class="text-danger">*</span></label>
+            <select class="form-select" formControlName="providerId">
+              <option value="">-- Choisir un médecin --</option>
+              <option *ngFor="let p of providers" [value]="p.id">{{ p.firstName }} {{ p.lastName }}</option>
+            </select>
+            <small class="text-muted" *ngIf="providersLoading">Chargement...</small>
+            <small class="text-muted" *ngIf="!providersLoading && providers.length === 0">Aucun médecin enregistré.</small>
+            <small class="text-danger" *ngIf="getControl('providerId')?.invalid && (getControl('providerId')?.touched || submitted)">
+              Obligatoire
+            </small>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Patient <span class="text-danger">*</span></label>
+            <select class="form-select" formControlName="patientId">
+              <option value="">-- Choisir un patient --</option>
+              <option *ngFor="let p of patients" [value]="p.id">{{ p.firstName }} {{ p.lastName }}</option>
+            </select>
+            <small class="text-muted" *ngIf="patientsLoading">Chargement...</small>
+            <small class="text-muted" *ngIf="!patientsLoading && patients.length === 0">Aucun patient enregistré.</small>
+            <small class="text-danger" *ngIf="getControl('patientId')?.invalid && (getControl('patientId')?.touched || submitted)">
+              Obligatoire
+            </small>
+          </div>
+          <div class="col-12" *ngIf="providerAvailabilities.length > 0">
+            <label class="form-label">Disponibilités du médecin</label>
+            <div class="bg-light rounded p-2 small">
+              <span *ngFor="let av of providerAvailabilities" class="badge bg-secondary me-1 mb-1">
+                {{ getDayName(av.dayOfWeek) }} : {{ av.startTime }} - {{ av.endTime }}
+              </span>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Date et heure de début <span class="text-danger">*</span></label>
+            <input type="datetime-local" class="form-control" formControlName="startTime" />
+            <small class="text-danger" *ngIf="getControl('startTime')?.invalid && (getControl('startTime')?.touched || submitted)">
+              Obligatoire
+            </small>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Date et heure de fin (optionnel)</label>
+            <input type="datetime-local" class="form-control" formControlName="endTime" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Titre <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="title" placeholder="Ex: Consultation de suivi" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Type</label>
+            <select class="form-select" formControlName="type">
+              <option [value]="ConsultationType.PRESENTIAL">Présentiel</option>
+              <option [value]="ConsultationType.ONLINE">En ligne</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" formControlName="description" rows="2"></textarea>
+          </div>
+          <div class="col-12" *ngIf="submitError" class="alert alert-danger">{{ submitError }}</div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">Créer la consultation</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card" *ngIf="!loading && !error">
+    <div class="card-header">Liste des consultations</div>
+    <div class="card-body p-0">
+      <table class="table table-striped modern-table mb-0" *ngIf="consultations.length > 0">
+        <thead>
+          <tr>
+            <th>Titre</th>
+            <th>Patient ID</th>
+            <th>Date de début</th>
+            <th>Type</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of consultations">
+            <td>{{ c.title }}</td>
+            <td>{{ c.patientId }}</td>
+            <td>{{ formatDateTime(c.startTime) }}</td>
+            <td>{{ c.type === 'ONLINE' ? 'En ligne' : 'Présentiel' }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="{
+                'scheduled': c.status === 'SCHEDULED',
+                'ongoing': c.status === 'ONGOING',
+                'completed': c.status === 'COMPLETED',
+                'cancelled': c.status === 'CANCELLED'
+              }">{{ c.status }}</span>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-info" *ngIf="c.type === 'ONLINE'" (click)="joinOnlineConsultation(c)">
+                Rejoindre la consultation
+              </button>
+              <span *ngIf="c.type !== 'ONLINE'" class="text-muted small">Présentiel</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="consultations.length === 0" class="p-4 text-center text-muted">
+        Aucune consultation trouvée.
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" *ngIf="showMeetingModal" (click)="closeMeetingModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ meetingTitle }}</h5>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-sm btn-outline-primary" (click)="openMeetingInNewTab()">Ouvrir dans un nouvel onglet</button>
+          <button type="button" class="btn-close" (click)="closeMeetingModal()" aria-label="Fermer"></button>
+        </div>
+      </div>
+      <div class="modal-body p-0">
+        <iframe *ngIf="meetingUrl" [src]="meetingUrl" class="meeting-iframe" allow="camera; microphone; fullscreen"></iframe>
+      </div>
+    </div>
+  </div>
+</div>

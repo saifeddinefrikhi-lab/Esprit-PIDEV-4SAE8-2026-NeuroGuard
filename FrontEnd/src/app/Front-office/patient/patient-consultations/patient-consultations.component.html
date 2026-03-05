@@ -1,0 +1,71 @@
+<div class="container mt-4">
+  <div class="page-header d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 class="mb-0">Mes consultations</h2>
+      <p class="text-muted small mb-0">Historique de vos rendez-vous médicaux</p>
+    </div>
+    <button class="btn btn-primary" (click)="refresh()">
+      <span class="me-1">↻</span> Actualiser
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="alert alert-info">Chargement en cours...</div>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <div class="card" *ngIf="!loading && !error">
+    <div class="card-header">Liste des consultations</div>
+    <div class="card-body p-0">
+      <table class="table table-striped modern-table mb-0" *ngIf="consultations.length > 0">
+        <thead>
+          <tr>
+            <th>Titre</th>
+            <th>Date de début</th>
+            <th>Type</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of consultations">
+            <td>{{ c.title }}</td>
+            <td>{{ formatDateTime(c.startTime) }}</td>
+            <td>{{ c.type === 'ONLINE' ? 'En ligne' : 'Présentiel' }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="{
+                'scheduled': c.status === 'SCHEDULED',
+                'ongoing': c.status === 'ONGOING',
+                'completed': c.status === 'COMPLETED',
+                'cancelled': c.status === 'CANCELLED'
+              }">{{ c.status }}</span>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-info" *ngIf="c.type === 'ONLINE'" (click)="joinOnlineConsultation(c)">
+                Rejoindre la consultation
+              </button>
+              <span *ngIf="c.type !== 'ONLINE'" class="text-muted small">Présentiel</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="consultations.length === 0" class="p-4 text-center text-muted">
+        Aucune consultation trouvée.
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal consultation en ligne (Jitsi Meet) -->
+  <div class="modal-overlay" *ngIf="showMeetingModal" (click)="closeMeetingModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ meetingTitle }}</h5>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-sm btn-outline-primary" (click)="openMeetingInNewTab()">Ouvrir dans un nouvel onglet</button>
+          <button type="button" class="btn-close" (click)="closeMeetingModal()" aria-label="Fermer"></button>
+        </div>
+      </div>
+      <div class="modal-body p-0">
+        <iframe *ngIf="meetingUrl" [src]="meetingUrl" class="meeting-iframe" allow="camera; microphone; fullscreen"></iframe>
+      </div>
+    </div>
+  </div>
+</div>

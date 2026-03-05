@@ -1,0 +1,117 @@
+<div class="container mt-4">
+  <div class="page-header d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 class="mb-0">Historique des consultations</h2>
+      <p class="text-muted small mb-0">Consultez l'historique de toutes vos consultations</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <input type="search" class="form-control form-control-sm header-search" placeholder="Rechercher par titre ou ID" (input)="onSearch($event)">
+      <a routerLink="/provider/consultations" class="btn btn-outline-primary">Gérer les consultations</a>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="alert alert-info">Chargement...</div>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <!-- Stats cards -->
+  <div class="row mb-4" *ngIf="!loading && !error && consultations.length > 0">
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="stats-card stats-total">
+        <div class="stats-value">{{ stats.total }}</div>
+        <div class="stats-label">Total</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="stats-card stats-online">
+        <div class="stats-value">{{ stats.online }}</div>
+        <div class="stats-label">En ligne</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="stats-card stats-presential">
+        <div class="stats-value">{{ stats.presential }}</div>
+        <div class="stats-label">Présentiel</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="stats-card stats-scheduled">
+        <div class="stats-value">{{ stats.scheduled }}</div>
+        <div class="stats-label">Planifiées</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="stats-card stats-completed">
+        <div class="stats-value">{{ stats.completed }}</div>
+        <div class="stats-label">Terminées</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="stats-card stats-cancelled">
+        <div class="stats-value">{{ stats.cancelled }}</div>
+        <div class="stats-label">Annulées</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" *ngIf="!loading && !error">
+    <div class="card-header">Consultations</div>
+    <div class="card-body p-0">
+      <table class="table table-striped modern-table mb-0" *ngIf="filteredConsultations().length > 0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Titre</th>
+            <th>Patient</th>
+            <th>Soignant</th>
+            <th>Date / Heure</th>
+            <th>Type</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of filteredConsultations()">
+            <td>{{ c.id }}</td>
+            <td>{{ c.title }}</td>
+            <td>{{ getPatientName(c.patientId) }}</td>
+            <td>{{ c.caregiverId ? getCaregiverName(c.caregiverId) : '-' }}</td>
+            <td>{{ formatDateTime(c.startTime) }}</td>
+            <td>{{ c.type === 'ONLINE' ? 'En ligne' : 'Présentiel' }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="{
+                'scheduled': c.status === 'SCHEDULED',
+                'ongoing': c.status === 'ONGOING',
+                'completed': c.status === 'COMPLETED',
+                'cancelled': c.status === 'CANCELLED'
+              }">{{ c.status }}</span>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-info" *ngIf="c.type === 'ONLINE'" (click)="joinOnlineConsultation(c)">
+                Rejoindre
+              </button>
+              <span *ngIf="c.type !== 'ONLINE'" class="text-muted">-</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="filteredConsultations().length === 0" class="p-4 text-center text-muted">
+        Aucune consultation trouvée.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showMeetingModal" (click)="closeMeetingModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h5 class="modal-title">{{ meetingTitle }}</h5>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-sm btn-outline-primary" (click)="openMeetingInNewTab()">Ouvrir dans un nouvel onglet</button>
+        <button type="button" class="btn-close" (click)="closeMeetingModal()" aria-label="Fermer"></button>
+      </div>
+    </div>
+    <div class="modal-body p-0">
+      <iframe *ngIf="meetingUrl" [src]="meetingUrl" class="meeting-iframe" allow="camera; microphone; fullscreen"></iframe>
+    </div>
+  </div>
+</div>
