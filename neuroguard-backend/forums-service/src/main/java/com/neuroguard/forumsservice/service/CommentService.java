@@ -12,8 +12,10 @@ import com.neuroguard.forumsservice.repository.CommentLikeRepository;
 import com.neuroguard.forumsservice.repository.CommentRepository;
 import com.neuroguard.forumsservice.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,7 +34,7 @@ public class CommentService {
     public CommentResponse addComment(Long postId, CommentRequest request, Long authorId) {
         profanityFilterService.validate(request.getContent());
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
 
         Comment comment = new Comment();
         comment.setContent(request.getContent());
@@ -46,11 +48,11 @@ public class CommentService {
     @Transactional
     public CommentResponse addReply(Long postId, Long parentCommentId, ReplyRequest request, Long authorId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
         Comment parent = commentRepository.findById(parentCommentId)
-                .orElseThrow(() -> new RuntimeException("Parent comment not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Parent comment not found"));
         if (!parent.getPost().getId().equals(postId)) {
-            throw new RuntimeException("Parent comment does not belong to this post");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Parent comment does not belong to this post");
         }
         profanityFilterService.validate(request.getContent());
         Comment reply = new Comment();
@@ -65,10 +67,10 @@ public class CommentService {
     @Transactional
     public CommentResponse updateComment(Long commentId, CommentRequest request, Long currentUserId, String currentUserRole) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new RuntimeException("Comment not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found"));
 
         if (!comment.getAuthorId().equals(currentUserId) && !"ADMIN".equals(currentUserRole)) {
-            throw new RuntimeException("You are not authorized to update this comment");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not authorized to update this comment");
         }
         profanityFilterService.validate(request.getContent());
         comment.setContent(request.getContent());
@@ -79,10 +81,10 @@ public class CommentService {
     @Transactional
     public void deleteComment(Long commentId, Long currentUserId, String currentUserRole) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new RuntimeException("Comment not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found"));
 
         if (!comment.getAuthorId().equals(currentUserId) && !"ADMIN".equals(currentUserRole)) {
-            throw new RuntimeException("You are not authorized to delete this comment");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not authorized to delete this comment");
         }
         commentRepository.delete(comment);
     }
@@ -105,9 +107,9 @@ public class CommentService {
     @Transactional
     public void likeComment(Long commentId, Long userId) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new RuntimeException("Comment not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found"));
         if (commentLikeRepository.existsByCommentIdAndUserId(commentId, userId)) {
-            throw new RuntimeException("You already liked this comment");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "You already liked this comment");
         }
         CommentLike like = new CommentLike();
         like.setComment(comment);
@@ -118,7 +120,7 @@ public class CommentService {
     @Transactional
     public void unlikeComment(Long commentId, Long userId) {
         if (!commentLikeRepository.existsByCommentIdAndUserId(commentId, userId)) {
-            throw new RuntimeException("You have not liked this comment");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You have not liked this comment");
         }
         commentLikeRepository.deleteByCommentIdAndUserId(commentId, userId);
     }

@@ -132,10 +132,10 @@ public class PostService {
     @Transactional
     public PostResponse updatePost(Long id, PostRequest request, Long currentUserId, String currentUserRole) {
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
 
         if (!post.getAuthorId().equals(currentUserId) && !"ADMIN".equals(currentUserRole)) {
-            throw new RuntimeException("You are not authorized to update this post");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not authorized to update this post");
         }
 
         profanityFilterService.validate(request.getTitle());
@@ -157,10 +157,10 @@ public class PostService {
     @Transactional
     public void deletePost(Long id, Long currentUserId, String currentUserRole) {
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
 
         if (!post.getAuthorId().equals(currentUserId) && !"ADMIN".equals(currentUserRole)) {
-            throw new RuntimeException("You are not authorized to delete this post");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not authorized to delete this post");
         }
         postRepository.delete(post);
     }
@@ -168,9 +168,9 @@ public class PostService {
     @Transactional
     public void likePost(Long postId, Long userId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
         if (postLikeRepository.existsByPostIdAndUserId(postId, userId)) {
-            throw new RuntimeException("You already liked this post");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "You already liked this post");
         }
         PostLike like = new PostLike();
         like.setPost(post);
@@ -181,7 +181,7 @@ public class PostService {
     @Transactional
     public void unlikePost(Long postId, Long userId) {
         if (!postLikeRepository.existsByPostIdAndUserId(postId, userId)) {
-            throw new RuntimeException("You have not liked this post");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You have not liked this post");
         }
         postLikeRepository.deleteByPostIdAndUserId(postId, userId);
     }
@@ -189,9 +189,9 @@ public class PostService {
     @Transactional
     public void sharePost(Long postId, Long userId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
         if (postShareRepository.existsByPostIdAndUserId(postId, userId)) {
-            throw new RuntimeException("You already shared this post");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "You already shared this post");
         }
         PostShare share = new PostShare();
         share.setPost(post);
@@ -202,10 +202,10 @@ public class PostService {
     @Transactional
     public PostResponse setPinned(Long postId, boolean pinned, String currentUserRole) {
         if (!"ADMIN".equals(currentUserRole)) {
-            throw new RuntimeException("Only admins can pin or unpin posts");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admins can pin or unpin posts");
         }
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
         post.setPinned(pinned);
         return mapToResponse(postRepository.save(post), null);
     }
