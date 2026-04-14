@@ -5,6 +5,7 @@ import lombok.Getter;
 @Getter
 public enum Profanity {
     // Insults & General
+    //comment
     DAMN("damn"),
     HELL("hell"),
     CRAP("crap"),
