@@ -66,6 +66,14 @@ export const NavigationItems: NavigationItem[] = [
     icon: 'schedule', // Ant Design schedule icon
     children: [
       {
+        id: 'find-nearby',
+        title: 'Find Nearby Doctors',
+        type: 'item',
+        url: '/patient/find-nearby-doctors',
+        icon: 'appstore',
+        breadcrumbs: false
+      },
+      {
         id: 'reservation',
         title: 'Make a Reservation',
         type: 'item',

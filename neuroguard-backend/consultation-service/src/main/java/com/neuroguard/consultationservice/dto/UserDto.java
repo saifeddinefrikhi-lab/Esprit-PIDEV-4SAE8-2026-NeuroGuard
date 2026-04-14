@@ -7,6 +7,8 @@ public class UserDto {
     private String firstName;
     private String lastName;
     private String role;
+    private Double latitude;
+    private Double longitude;
 
     // Getters and setters
     public Long getId() { return id; }
@@ -26,4 +28,10 @@ public class UserDto {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+
+    public Double getLatitude() { return latitude; }
+    public void setLatitude(Double latitude) { this.latitude = latitude; }
+
+    public Double getLongitude() { return longitude; }
+    public void setLongitude(Double longitude) { this.longitude = longitude; }
 }

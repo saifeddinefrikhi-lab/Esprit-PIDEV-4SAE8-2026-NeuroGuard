@@ -70,6 +70,10 @@ export const routes: Routes = [
         path: 'patient/assurance',
         loadComponent: () => import('./Front-office/patient/assurance-management/assurance-management.component').then((c) => c.AssuranceManagementComponent)
       },
+      {
+        path: 'patient/find-nearby-doctors',
+        loadComponent: () => import('./pages/consultation/find-nearby-doctors/find-nearby-doctors.component').then((c) => c.FindNearbyDoctorsComponent)
+      },
     ]
   },
 
@@ -136,6 +140,10 @@ export const routes: Routes = [
       {
         path: 'provider/availability',
         loadComponent: () => import('./Front-office/healthcare-provider/provider-availability/provider-availability.component').then((c) => c.ProviderAvailabilityComponent)
+      },
+      {
+        path: 'provider/find-nearby-doctors',
+        loadComponent: () => import('./pages/consultation/find-nearby-doctors/find-nearby-doctors.component').then((c) => c.FindNearbyDoctorsComponent)
       }
     ]
   },

@@ -3,10 +3,12 @@ package com.neuroguard.assuranceservice.controller;
 import com.neuroguard.assuranceservice.dto.AssuranceRequestDto;
 import com.neuroguard.assuranceservice.dto.AssuranceResponseDto;
 import com.neuroguard.assuranceservice.dto.CoverageRiskAssessmentDto;
+import com.neuroguard.assuranceservice.dto.StatisticsDto;
 import com.neuroguard.assuranceservice.entity.AssuranceStatus;
 import com.neuroguard.assuranceservice.entity.CoverageRiskAssessment;
 import com.neuroguard.assuranceservice.service.AssuranceService;
 import com.neuroguard.assuranceservice.service.CoverageRiskAssessmentService;
+import com.neuroguard.assuranceservice.service.StatisticsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,6 +24,7 @@ public class AssuranceController {
 
     private final AssuranceService assuranceService;
     private final CoverageRiskAssessmentService coverageRiskAssessmentService;
+    private final StatisticsService statisticsService;
 
     // TEMPORARY TEST ENDPOINT - Remove after testing
     @GetMapping("/test/{assuranceId}")
@@ -130,6 +133,40 @@ public class AssuranceController {
             CoverageRiskAssessment assessment = coverageRiskAssessmentService.recalculateRiskAssessment(assuranceId, patientId);
             return ResponseEntity.ok(mapToDto(assessment));
         } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // ============ Advanced Statistics Endpoints ============
+
+    /**
+     * Get comprehensive patient-level statistics
+     */
+    @GetMapping("/stats/patient/{patientId}")
+    public ResponseEntity<StatisticsDto.PatientStatistics> getPatientStatistics(
+            @PathVariable Long patientId) {
+        try {
+            StatisticsDto.PatientStatistics stats = statisticsService.getPatientStatistics(patientId);
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            System.out.println("DEBUG: Error getting patient statistics: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Get comprehensive assurance-level statistics
+     */
+    @GetMapping("/stats/assurance/{assuranceId}")
+    public ResponseEntity<StatisticsDto.AssuranceStatistics> getAssuranceStatistics(
+            @PathVariable Long assuranceId) {
+        try {
+            StatisticsDto.AssuranceStatistics stats = statisticsService.getAssuranceStatistics(assuranceId);
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            System.out.println("DEBUG: Error getting assurance statistics: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

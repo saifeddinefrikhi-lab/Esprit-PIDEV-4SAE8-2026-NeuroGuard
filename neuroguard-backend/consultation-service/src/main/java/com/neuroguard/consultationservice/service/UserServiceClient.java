@@ -17,4 +17,11 @@ public interface UserServiceClient {
 
     @GetMapping("/users/caregiver/{caregiverId}/patients")
     List<UserDto> getPatientsByCaregiver(@PathVariable("caregiverId") Long caregiverId);
+
+    /**
+     * Récupère tous les utilisateurs d'un rôle donné (ex: PROVIDER).
+     * Inclut leurs coordonnées lat/lon pour le calcul de proximité.
+     */
+    @GetMapping("/users/role/{role}")
+    List<UserDto> getUsersByRole(@PathVariable("role") String role);
 }

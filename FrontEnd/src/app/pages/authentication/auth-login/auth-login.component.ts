@@ -93,7 +93,26 @@ export class AuthLoginComponent {
           const userRole = this.authService.getRoleFromToken(token);
           console.log('User role:', userRole);
           setTimeout(() => {
-            this.authService.redirectBasedOnRole(userRole);
+            if (userRole === 'PATIENT') {
+              if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                  (position) => {
+                    localStorage.setItem('patientLat', position.coords.latitude.toString());
+                    localStorage.setItem('patientLon', position.coords.longitude.toString());
+                    this.router.navigate(['/patient/find-nearby-doctors']);
+                  },
+                  (error) => {
+                    console.warn('Geolocation failed during login, redirecting anyway');
+                    this.router.navigate(['/patient/find-nearby-doctors']);
+                  },
+                  { timeout: 3000, enableHighAccuracy: true }
+                );
+              } else {
+                this.router.navigate(['/patient/find-nearby-doctors']);
+              }
+            } else {
+              this.authService.redirectBasedOnRole(userRole);
+            }
           }, 1500);
         }
       },

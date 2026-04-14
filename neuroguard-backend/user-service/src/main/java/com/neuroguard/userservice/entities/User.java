@@ -30,4 +30,15 @@ public class User {
 
     private String password;
 
+    /**
+     * Latitude géographique de l'utilisateur (médecin ou patient).
+     * Optionnel — renseigné lors de la création ou la mise à jour du profil.
+     */
+    private Double latitude;
+
+    /**
+     * Longitude géographique de l'utilisateur (médecin ou patient).
+     */
+    private Double longitude;
+
 }

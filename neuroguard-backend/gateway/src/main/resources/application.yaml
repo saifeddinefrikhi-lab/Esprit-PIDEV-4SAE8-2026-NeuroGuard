@@ -64,6 +64,14 @@ spring:
           uri: lb://consultation-service
           predicates:
             - Path=/api/availability/**
+        - id: consultation-providers
+          uri: lb://consultation-service
+          predicates:
+            - Path=/api/providers/**
+        - id: consultation-distance
+          uri: lb://consultation-service
+          predicates:
+            - Path=/api/distance/**
         - id: assurance-service
           uri: lb://assurance-service
           predicates:

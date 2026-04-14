@@ -22,8 +22,20 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
+    timeout: 60000
+    jedis:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1ms
+
 server:
-  port: 8084
+  port: 8082
 
 eureka:
   client:
@@ -52,3 +64,13 @@ app:
     provider: google
     google:
       api-key: AIzaSyCmUOklXWRUK52Ijlqcmz8IiDmaYUWPkLo
+      modes: DRIVING,WALKING,TRANSIT,BICYCLING
+      cache-ttl-minutes: 120
+  location:
+    streaming:
+      enabled: true
+      cache-ttl-seconds: 300
+      broadcast-interval-ms: 5000
+  websocket:
+    enabled: true
+    endpoint: /ws-location

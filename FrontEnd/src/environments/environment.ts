@@ -8,6 +8,7 @@ export const environment = {
   appVersion: packageInfo.version,
   production: false,
   apiUrl: 'http://localhost:8083', // Gateway URL
+  distanceApiUrl: 'http://localhost:8084' // Consultation Service URL
 
 };
 

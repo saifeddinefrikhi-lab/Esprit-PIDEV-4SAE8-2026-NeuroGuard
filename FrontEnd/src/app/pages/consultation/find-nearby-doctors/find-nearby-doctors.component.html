@@ -1,0 +1,167 @@
+<div class="find-nearby-premium-container py-4">
+  <div class="glass-header text-center mb-5">
+    <h1 class="gradient-text mb-2 animate-fade-in"><i class="fas fa-satellite-dish me-2"></i> Localisation des Médecins</h1>
+    <p class="text-muted fade-in-up">Découvrez les spécialistes les plus proches de vous en temps réel.</p>
+  </div>
+
+  <div class="container-fluid px-4 px-lg-5">
+    <!-- Messages -->
+    <div class="status-messages mb-4">
+      <div *ngIf="successMessage" class="glass-alert alert-success d-flex align-items-center">
+        <div class="icon-circle me-3"><i class="fas fa-check-circle"></i></div>
+        <div>{{ successMessage }}</div>
+        <button type="button" class="btn-close ms-auto" (click)="successMessage = ''"></button>
+      </div>
+      <div *ngIf="errorMessage" class="glass-alert alert-danger d-flex align-items-center">
+        <div class="icon-circle me-3"><i class="fas fa-exclamation-triangle"></i></div>
+        <div>{{ errorMessage }}</div>
+        <button type="button" class="btn-close ms-auto" (click)="errorMessage = ''"></button>
+      </div>
+      <div *ngIf="patientLocationError" class="glass-alert alert-warning d-flex align-items-center">
+        <div class="icon-circle me-3"><i class="fas fa-location-arrow"></i></div>
+        <div>{{ patientLocationError }}</div>
+        <button type="button" class="btn-close ms-auto" (click)="patientLocationError = ''"></button>
+      </div>
+    </div>
+
+    <!-- Filtres Glassmorphism -->
+    <div class="glass-card filters-card mb-5 fade-in-up delay-1">
+      <div class="card-body p-4">
+        <div class="row align-items-end g-4">
+          <div class="col-md-4">
+            <label class="premium-label"><i class="fas fa-car-side me-2"></i> Mode de transport</label>
+            <div class="custom-select-wrapper">
+              <select class="premium-select w-100" [(ngModel)]="selectedTransportMode" (change)="onTransportModeChange()">
+                <option *ngFor="let mode of transportModes" [value]="mode.value">{{ mode.label }}</option>
+              </select>
+              <i class="fas fa-chevron-down select-icon"></i>
+            </div>
+          </div>
+          
+          <div class="col-md-4">
+            <label class="premium-label"><i class="fas fa-broadcast-tower me-2"></i> Rayon de recherche ({{ searchRadius }} km)</label>
+            <div class="range-wrapper mt-2">
+              <input type="range" class="premium-range w-100" [(ngModel)]="searchRadius" min="5" max="200" (change)="onRadiusChange()">
+            </div>
+          </div>
+
+          <div class="col-md-4 d-flex justify-content-end gap-3">
+             <button class="premium-btn btn-location w-auto flex-grow-1" (click)="getCurrentLocation()" [disabled]="isLoadingLocation">
+               <i class="fas" [ngClass]="isLoadingLocation ? 'fa-spinner fa-spin' : 'fa-crosshairs'"></i>
+               <span>{{ isLoadingLocation ? 'Géolocalisation...' : 'Ma Position' }}</span>
+             </button>
+             <button class="premium-btn btn-search w-auto flex-grow-1" (click)="searchClosestProviders()" [disabled]="isSearching || !patientLocation">
+               <i class="fas" [ngClass]="isSearching ? 'fa-spinner fa-spin' : 'fa-search-location'"></i>
+               <span>{{ isSearching ? 'Recherche...' : 'Rechercher' }}</span>
+             </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row g-4 main-content-row fade-in-up delay-2">
+      <!-- Liste des Médecins -->
+      <div class="col-xl-4 col-lg-5">
+        <div class="glass-card list-card h-100 d-flex flex-column">
+          <div class="card-header bg-transparent border-0 pt-4 pb-2 px-4 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-white"><i class="fas fa-user-md me-2 text-primary"></i> Médecins à proximité</h5>
+            <span class="premium-badge pulse" *ngIf="resultCount > 0">{{ resultCount }} trouvés</span>
+          </div>
+
+          <div class="card-body p-0 overflow-auto list-scroll-container">
+            <!-- Loading -->
+            <div *ngIf="isSearching" class="empty-state p-5 text-center">
+              <div class="breeding-rhombus-spinner mx-auto mb-4">
+                <div class="rhombus child-1"></div><div class="rhombus child-2"></div>
+                <div class="rhombus child-3"></div><div class="rhombus child-4"></div>
+                <div class="rhombus child-5"></div><div class="rhombus child-6"></div>
+                <div class="rhombus child-7"></div><div class="rhombus child-8"></div><div class="rhombus big"></div>
+              </div>
+              <h5 class="text-white-50 mt-3">Analyse des disponibilités...</h5>
+            </div>
+
+            <!-- Empty -->
+            <div *ngIf="!isSearching && filteredProviders.length === 0" class="empty-state p-5 text-center fade-in">
+               <div class="icon-container glowing-icon mb-4"><i class="fas fa-map-marked-alt text-muted fa-3x"></i></div>
+               <h5 class="text-white-50">Aucun spécialiste dans cette zone</h5>
+               <p class="text-muted small mt-2">Élargissez votre rayon de recherche</p>
+            </div>
+
+            <!-- List -->
+            <div class="provider-list p-3" *ngIf="!isSearching && filteredProviders.length > 0">
+               <div *ngFor="let provider of filteredProviders; let i = index" 
+                    class="premium-provider-card mb-3" 
+                    [class.active]="selectedProvider?.providerId === provider.providerId"
+                    [class.closest]="i === 0"
+                    (click)="selectProvider(provider)">
+                 
+                 <!-- Closest Badge -->
+                 <div class="closest-badge" *ngIf="i === 0">
+                    <i class="fas fa-star me-1"></i> Le plus proche
+                 </div>
+
+                 <div class="d-flex align-items-start gap-3">
+                   <div class="avatar-gradient">
+                     <span class="fw-bold">{{ i + 1 }}</span>
+                   </div>
+                   
+                   <div class="flex-grow-1">
+                     <h6 class="provider-name mb-1">{{ provider.providerName || 'Spécialiste' }}</h6>
+                     <p class="provider-specialty text-primary mb-2"><i class="fas fa-stethoscope me-1"></i> {{ provider.specialty || 'Médecin Généraliste' }}</p>
+                     
+                     <div class="stats-row d-flex gap-3 mb-3">
+                       <div class="stat-item distance bg-blur">
+                         <i class="fas fa-route text-info"></i>
+                         <span>{{ provider.roadDistanceKm || provider.distanceKm | number:'1.1' }} km</span>
+                       </div>
+                       <div class="stat-item duration bg-blur">
+                         <i class="far fa-clock text-warning"></i>
+                         <span>{{ provider.estimatedDurationHuman || 'N/A' }}</span>
+                       </div>
+                     </div>
+
+                     <!-- Rating -->
+                     <div class="rating-display d-flex align-items-center mb-3" *ngIf="provider.rating">
+                        <div class="stars me-2">
+                           <i *ngFor="let star of [1,2,3,4,5]" class="fas fa-star" [class.active-star]="star <= provider.rating"></i>
+                        </div>
+                        <span class="small text-muted">{{ provider.rating }}/5</span>
+                     </div>
+
+                     <div class="action-buttons d-flex gap-2">
+                        <button class="btn-neo secondary flex-grow-1" (click)="showDirections(provider)">
+                          <i class="fas fa-directions"></i> Itinéraire
+                        </button>
+                        <button class="btn-neo primary flex-grow-1" [disabled]="!provider.availability || provider.availability === 'OFFLINE'">
+                          <i class="fas fa-calendar-check"></i> Réserver
+                        </button>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map -->
+      <div class="col-xl-8 col-lg-7">
+        <div class="glass-card map-card h-100">
+           <div class="card-body p-2 h-100">
+             <div class="map-wrapper h-100 rounded-3 overflow-hidden position-relative">
+               <div #googleMap class="google-map h-100 w-100"></div>
+               <!-- Overlay quand map non chargée / vide -->
+               <div class="map-overlay" *ngIf="filteredProviders.length === 0 && !patientLocation">
+                  <div class="text-center">
+                    <i class="fas fa-map-marker-alt fa-3x mb-3 text-muted pulse"></i>
+                    <h5 class="text-white-50">Localisation en attente</h5>
+                  </div>
+               </div>
+             </div>
+           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
