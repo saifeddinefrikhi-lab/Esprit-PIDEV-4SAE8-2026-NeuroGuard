@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, AfterViewInit, NgZone } from '@angular/core';
+declare var google: any;
 import { AuthService } from '../../../core/services/auth.service';  
 import { Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -11,7 +12,7 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./auth-login.component.scss'],
   imports: [ReactiveFormsModule, RouterModule, CommonModule]
 })
-export class AuthLoginComponent {
+export class AuthLoginComponent implements AfterViewInit {
   loginForm: FormGroup;
   submitted = false;
   errorMessage = '';
@@ -22,11 +23,54 @@ export class AuthLoginComponent {
   constructor(
     private authService: AuthService, 
     private router: Router,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private ngZone: NgZone
   ) {
     this.loginForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3)]],
       password: ['', [Validators.required, Validators.minLength(6)]]
+    });
+  }
+
+  ngAfterViewInit(): void {
+    this.initializeGoogleSignIn();
+  }
+
+  private initializeGoogleSignIn(): void {
+    if (typeof google !== 'undefined') {
+      google.accounts.id.initialize({
+        client_id: '550789921754-tdpg2nso52gvhr2mgdhk0ra01hk79kt8.apps.googleusercontent.com', // Replace with your actual Client ID
+        callback: (response: any) => this.ngZone.run(() => this.handleGoogleCredential(response))
+      });
+
+      google.accounts.id.renderButton(
+        document.getElementById('google-btn-container'),
+        { theme: 'outline', size: 'large', shape: 'rectangular' } // Removed explicit 100% to fix warning
+      );
+    } else {
+      setTimeout(() => this.initializeGoogleSignIn(), 500);
+    }
+  }
+
+  private handleGoogleCredential(response: any): void {
+    console.log('Received Google credential');
+    this.isLoading = true;
+    this.authService.googleLogin(response.credential).subscribe({
+      next: () => {
+        this.successMessage = 'Google login successful! Redirecting...';
+        this.isLoading = false;
+        setTimeout(() => {
+          const token = localStorage.getItem('authToken');
+          if (token) {
+            this.authService.redirectBasedOnRole(this.authService.getRoleFromToken(token));
+          }
+        }, 1500);
+      },
+      error: (error) => {
+        console.error('Google login error:', error);
+        this.errorMessage = error.message || 'Google authentication failed.';
+        this.isLoading = false;
+      }
     });
   }
 

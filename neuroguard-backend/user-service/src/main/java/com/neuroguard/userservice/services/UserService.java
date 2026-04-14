@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -150,5 +151,16 @@ public class UserService implements UserDetailsService {
         long admins = userRepository.countByRole(Role.ADMIN);
         long total = userRepository.count();
         return new UserStatsDto(total, patients, providers, caregivers, admins);
+    }
+
+    // Find user by email (for password reset)
+    public Optional<User> findUserByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    // Update user password (for password reset)
+    public void updateUserPassword(User user, String newPassword) {
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 }

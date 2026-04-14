@@ -12,6 +12,26 @@ spring:
     discovery:
       enabled: true
       service-id: ${spring.application.name}
+  # Email configuration for password reset
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL_USERNAME:your-email@gmail.com}
+    password: ${EMAIL_PASSWORD:your-app-password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+    protocol: smtp
+  # Enable async for email sending
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 10
+        queue-capacity: 100
 
 eureka:
   client:
@@ -25,3 +45,17 @@ server:
 
 jwt:
   secret: XDkzF2YNPA/7vXmPYJmaACjY6VBhwHJbr4pzPF5jguE=
+
+# Application-specific configuration
+app:
+  mail:
+    from:
+      email: ${SENDER_EMAIL:MS_jihen@test-vz9dlemw6kp4kj50.mlsender.net}
+      name: ${SENDER_NAME:NeuroGuard Support}
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:4200}
+
+# Brevo email configuration
+mailersend:
+  api-key: ${MAILERSEND_API_KEY:mlsn.6ec1face0ac47b812e0aba9321d5fb3fc9134886321ecfce6b9129f73b2c174a}
+  api-url: ${MAILERSEND_API_URL:https://api.mailersend.com/v1}

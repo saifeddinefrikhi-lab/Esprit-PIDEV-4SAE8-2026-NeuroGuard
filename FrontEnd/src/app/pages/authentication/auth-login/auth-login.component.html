@@ -81,7 +81,7 @@
                   Remember me
                 </label>
               </div>
-              <a href="#" class="link-primary">Forgot password?</a>
+              <a [routerLink]="['/forgot-password']" class="link-primary">Forgot password?</a>
             </div>
 
             <!-- Login Button -->
@@ -102,10 +102,8 @@
 
             <!-- Social Login Options -->
             <div class="d-grid gap-2 social-grid">
-              <button type="button" class="btn btn-outline-secondary">
-                <i class="ti ti-brand-google me-2"></i>
-                Google
-              </button>
+              <div id="google-btn-container" class="d-flex justify-content-center"></div>
+              
               <button type="button" class="btn btn-outline-secondary">
                 <i class="ti ti-brand-facebook me-2"></i>
                 Facebook

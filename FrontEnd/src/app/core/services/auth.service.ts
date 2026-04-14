@@ -135,6 +135,22 @@ export class AuthService {
     );
   }
 
+  // Login with Google
+  googleLogin(idToken: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/google`, { idToken }, {
+      responseType: 'text'
+    }).pipe(
+      tap((responseBody: string) => {
+        const token = this.extractJwtToken(responseBody);
+        if (!token) throw new Error('Invalid token received from Google authentication.');
+        
+        localStorage.setItem('authToken', token);
+        this.initializeCurrentUser();
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   // Logout the user and clear token
   logout() {
     localStorage.removeItem('authToken');
@@ -248,5 +264,23 @@ export class AuthService {
     const base64 = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
     const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
     return JSON.parse(atob(padded));
+  }
+
+  // Forgot password - send reset link to email
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/forgot-password`, { email }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  // Reset password - validate token and update password
+  resetPassword(token: string, newPassword: string, confirmPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/reset-password`, {
+      token,
+      newPassword,
+      confirmPassword
+    }).pipe(
+      catchError(this.handleError)
+    );
   }
 }

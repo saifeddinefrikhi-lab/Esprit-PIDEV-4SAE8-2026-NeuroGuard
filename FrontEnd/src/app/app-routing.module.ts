@@ -189,6 +189,14 @@ export const routes: Routes = [
           import('./pages/authentication/auth-register/auth-register.component').then((c) => c.AuthRegisterComponent)
       },
       {
+        path: 'forgot-password',
+        loadComponent: () => import('./pages/authentication/auth-forgot-password/auth-forgot-password.component').then((c) => c.AuthForgotPasswordComponent)
+      },
+      {
+        path: 'reset-password',
+        loadComponent: () => import('./pages/authentication/auth-reset-password/auth-reset-password.component').then((c) => c.AuthResetPasswordComponent)
+      },
+      {
         path: 'homePage',
         loadComponent: () => import('./Front-office/home-page/home-page.component').then((c) => c.HomePageComponent)
       },

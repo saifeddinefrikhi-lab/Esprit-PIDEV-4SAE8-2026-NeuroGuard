@@ -1,5 +1,6 @@
 package com.neuroguard.forumsservice.service;
 
+import com.neuroguard.forumsservice.constant.Profanity;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -14,16 +15,9 @@ import java.util.stream.Collectors;
 @Service
 public class ProfanityFilterService {
 
-    private static final Set<String> BANNED_WORDS = Arrays.stream(new String[]{
-            "damn", "hell", "crap", "stupid", "idiot", "dumb", "suck",
-            "hate", "kill", "die", "ugly", "fat", "loser", "shut up",
-            "shutup", "wtf", "omg", "bs", "sucks", "screw", "screwed",
-            "freaking", "fricking", "frigging", "bloody", "bugger",
-            "arse", "ass", "bitch", "bastard", "dick", "cock", "prick",
-            "pussy", "slut", "whore", "fag", "retard", "retarded",
-            "nigger", "nigga", "fuck", "fucking", "fucked", "fucker",
-            "shit", "shitty", "bullshit", "dipshit", "dip stick"
-    }).map(String::toLowerCase).collect(Collectors.toSet());
+    private static final Set<String> BANNED_WORDS = Arrays.stream(Profanity.values())
+            .map(Profanity::getWord)
+            .collect(Collectors.toSet());
 
     private static final String REJECTION_MESSAGE =
             "Your content contains language that is not allowed. Please remove inappropriate words.";

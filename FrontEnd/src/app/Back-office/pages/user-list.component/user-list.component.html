@@ -44,7 +44,6 @@
       <table>
         <thead>
           <tr>
-            <th>ID</th>
             <th>Username</th>
             <th>Email</th>
             <th>First Name</th>
@@ -55,7 +54,6 @@
         </thead>
         <tbody>
           <tr *ngFor="let user of filteredUsers">
-            <td>#{{ user.id }}</td>
             <td class="fw-medium">{{ user.username }}</td>
             <td>{{ user.email }}</td>
             <td>{{ user.firstName }}</td>
