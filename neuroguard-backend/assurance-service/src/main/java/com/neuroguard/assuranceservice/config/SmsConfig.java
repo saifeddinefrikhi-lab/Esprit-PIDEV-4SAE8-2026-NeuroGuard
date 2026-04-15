@@ -1,11 +1,13 @@
 package com.neuroguard.assuranceservice.config;
 
 import com.twilio.Twilio;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 
 import jakarta.annotation.PostConstruct;
 
 @Configuration
+@Slf4j
 public class SmsConfig {
 
     private String accountSid;
@@ -24,16 +26,16 @@ public class SmsConfig {
             this.fromPhoneNumber = "+1234567890";
         }
 
-        System.out.println("📱 Twilio SMS Configuration:");
-        System.out.println("   Account SID: " + (this.accountSid != null && !this.accountSid.isEmpty() ? "***configured***" : "NOT SET"));
-        System.out.println("   Auth Token: " + (this.authToken != null && !this.authToken.isEmpty() ? "***configured***" : "NOT SET"));
-        System.out.println("   Phone Number: " + this.fromPhoneNumber);
+        log.info("Twilio SMS Configuration:");
+        log.info("   Account SID: {}", this.accountSid != null && !this.accountSid.isEmpty() ? "***configured***" : "NOT SET");
+        log.info("   Auth Token: {}", this.authToken != null && !this.authToken.isEmpty() ? "***configured***" : "NOT SET");
+        log.info("   Phone Number: {}", this.fromPhoneNumber);
 
         if (accountSid != null && !accountSid.isEmpty() && authToken != null && !authToken.isEmpty()) {
             Twilio.init(accountSid, authToken);
-            System.out.println("   ✓ Twilio initialized successfully");
+            log.info("Twilio initialized successfully");
         } else {
-            System.out.println("   ⚠ Twilio NOT configured - SMS notifications will be disabled");
+            log.warn("Twilio NOT configured - SMS notifications will be disabled");
         }
     }
 

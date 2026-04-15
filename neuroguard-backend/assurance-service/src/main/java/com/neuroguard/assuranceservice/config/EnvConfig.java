@@ -1,10 +1,12 @@
 package com.neuroguard.assuranceservice.config;
 
 import io.github.cdimascio.dotenv.Dotenv;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import java.io.File;
 
 @Configuration
+@Slf4j
 public class EnvConfig {
 
     public EnvConfig() {
@@ -43,18 +45,18 @@ public class EnvConfig {
                     }
                 });
 
-                System.out.println("✓ .env file loaded successfully from: " + envFile.getAbsolutePath());
+                log.info(".env file loaded successfully from: {}", envFile.getAbsolutePath());
             } catch (Exception e) {
-                System.out.println("⚠ Error loading .env file: " + e.getMessage());
+                log.warn("Error loading .env file: {}", e.getMessage());
             }
         } else {
-            System.out.println("⚠ .env file not found at:");
+            log.warn(".env file not found at:");
             for (String path : possiblePaths) {
                 if (path != null && !path.isEmpty()) {
-                    System.out.println("   - " + path);
+                    log.warn("   - {}", path);
                 }
             }
-            System.out.println("  Using environment variables from system");
+            log.info("Using environment variables from system");
         }
     }
 

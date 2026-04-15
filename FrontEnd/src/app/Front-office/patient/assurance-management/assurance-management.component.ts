@@ -6,11 +6,13 @@ import { CoverageRiskAssessmentService, CoverageRiskAssessment } from '../../../
 import { HealthMetricsComponent } from './health-metrics.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { SharedModule } from 'src/app/theme/shared/shared.module';
+import { PatientRentabilityAnalysisComponent } from './patient-rentability-analysis.component';
+import { PatientCoverageOptimizerComponent } from './patient-coverage-optimizer.component';
 
 @Component({
   selector: 'app-assurance-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SharedModule, HealthMetricsComponent],
+  imports: [CommonModule, ReactiveFormsModule, SharedModule, HealthMetricsComponent, PatientRentabilityAnalysisComponent, PatientCoverageOptimizerComponent],
   templateUrl: './assurance-management.component.html',
   styleUrls: ['./assurance-management.component.scss']
 })

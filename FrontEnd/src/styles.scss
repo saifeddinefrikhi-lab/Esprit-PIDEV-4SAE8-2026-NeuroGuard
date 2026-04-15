@@ -7,31 +7,34 @@ File: style.css
 =========================================================================
 =================================================================================== */
 
+// ============================================
+// Using @import for ALL files
+// (Dart Sass @use has too many constraints with Bootstrap)
+// This merges everything into global namespace
+// ============================================
+
 // Icons
 @import 'scss/fonts/tabler-icons.min.css';
 
-// main framework
+// Bootstrap functions and variables FIRST
 @import 'node_modules/bootstrap/scss/functions';
 @import 'node_modules/bootstrap/scss/variables';
 @import 'node_modules/bootstrap/scss/variables-dark';
 
+// Our custom settings (can now use Bootstrap variables)
 @import 'scss/settings/color-variables';
 @import 'scss/settings/theme-variables';
 @import 'scss/settings/bootstrap-variables';
 
-// bootstrap import
+// Bootstrap core
 @import 'scss/bootstrap/bootstrap.scss';
 
-@import 'node_modules/bootstrap/scss/utilities';
-@import 'node_modules/bootstrap/scss/utilities/api';
-
-// main framework
+// Theme files
 @import 'scss/themes/generic.scss';
 @import 'scss/themes/general.scss';
-
 @import 'scss/themes/components/components.scss';
 
-// theme
+// Theme layouts
 @import 'scss/themes/layouts/menu/sidebar.scss';
 @import 'scss/themes/layouts/navbar/navbar.scss';
 @import 'scss/themes/layouts/pc-common.scss';
@@ -39,3 +42,7 @@ File: style.css
 @import 'scss/themes/layouts/footer/footer.scss';
 
 @import 'scss/themes/preset-style.scss';
+
+// Bootstrap utilities API
+@import 'node_modules/bootstrap/scss/utilities';
+@import 'node_modules/bootstrap/scss/utilities/api';

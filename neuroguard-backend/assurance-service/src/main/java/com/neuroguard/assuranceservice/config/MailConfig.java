@@ -1,5 +1,6 @@
 package com.neuroguard.assuranceservice.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -8,6 +9,7 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import java.util.Properties;
 
 @Configuration
+@Slf4j
 public class MailConfig {
 
     @Bean
@@ -25,11 +27,11 @@ public class MailConfig {
         mailSender.setUsername(username != null && !username.isEmpty() ? username : "");
         mailSender.setPassword(password != null && !password.isEmpty() ? password : "");
 
-        System.out.println("✉️  Mail Configuration:");
-        System.out.println("   Host: " + mailSender.getHost());
-        System.out.println("   Port: " + mailSender.getPort());
-        System.out.println("   Username: " + (mailSender.getUsername() != null && !mailSender.getUsername().isEmpty() ? "***configured***" : "NOT SET"));
-        System.out.println("   Password: " + (mailSender.getPassword() != null && !mailSender.getPassword().isEmpty() ? "***configured***" : "NOT SET"));
+        log.info("Mail Configuration:");
+        log.info("   Host: {}", mailSender.getHost());
+        log.info("   Port: {}", mailSender.getPort());
+        log.info("   Username: {}", mailSender.getUsername() != null && !mailSender.getUsername().isEmpty() ? "***configured***" : "NOT SET");
+        log.info("   Password: {}", mailSender.getPassword() != null && !mailSender.getPassword().isEmpty() ? "***configured***" : "NOT SET");
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.smtp.auth", "true");

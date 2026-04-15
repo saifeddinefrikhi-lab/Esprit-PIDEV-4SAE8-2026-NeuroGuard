@@ -36,16 +36,10 @@ public class CoverageRiskAssessmentService {
         log.info("Starting risk assessment calculation for assurance: {}, patient: {}", assuranceId, patientId);
 
         try {
-            // Step 0: Generate unique seed for this assurance
-            int assuranceSeed = (int) (assuranceId % 100);
-            log.info("Using assurance seed: {} (from assuranceId: {})", assuranceSeed, assuranceId);
-
-            // Step 1: Fetch medical history OR generate test data if empty
+            // Step 1: Fetch medical history from authoritative source
             MedicalHistoryDto medicalHistory = fetchMedicalHistory(patientId);
-            // OVERRIDE with generated test data based on assurance ID for guaranteed variation
-            medicalHistory = generateTestMedicalData(assuranceSeed);
-            log.info("Generated test medical data for assurance: {} - MMSE: {}, ADL: {}, BMI: {}, Smoking: {}", 
-                     assuranceId, medicalHistory.getMmse(), medicalHistory.getAdl(), medicalHistory.getBmi(), medicalHistory.getSmoking());
+            log.info("Fetched medical history for patient: {} - MMSE: {}, ADL: {}, BMI: {}, Smoking: {}", 
+                     patientId, medicalHistory.getMmse(), medicalHistory.getAdl(), medicalHistory.getBmi(), medicalHistory.getSmoking());
 
             // Step 2: Get ML prediction
             MLPredictionDto mlPrediction = getMlPrediction(medicalHistory, assuranceId);
@@ -55,9 +49,9 @@ public class CoverageRiskAssessmentService {
             List<AlertDto> activeAlerts = fetchActiveAlerts(patientId);
             log.info("Found {} active alerts for patient: {}", activeAlerts.size(), patientId);
 
-            // Step 4: Calculate composite medical complexity score - VARIES BY ASSURANCE
+            // Step 4: Calculate composite medical complexity score
             Integer medicalComplexityScore = calculateMedicalComplexityScore(
-                    mlPrediction, activeAlerts, medicalHistory, assuranceSeed
+                    mlPrediction, activeAlerts, medicalHistory
             );
             log.info("Calculated medical complexity score: {} for assuranceId: {}", medicalComplexityScore, assuranceId);
 
@@ -65,8 +59,8 @@ public class CoverageRiskAssessmentService {
             String coverageLevel = determineCoverageLevel(medicalComplexityScore, mlPrediction.getRiskLevel());
             log.info("Determined coverage level: {} for assuranceId: {}", coverageLevel, assuranceId);
 
-            // Step 6: Estimate annual claim cost - VARIES BY ASSURANCE
-            Double estimatedClaimCost = estimateAnnualClaimCost(medicalComplexityScore, assuranceSeed);
+            // Step 6: Estimate annual claim cost
+            Double estimatedClaimCost = estimateAnnualClaimCost(medicalComplexityScore);
             log.info("Estimated annual claim cost: ${} for assuranceId: {}", estimatedClaimCost, assuranceId);
 
             // Step 7: Generate recommended procedures
@@ -146,34 +140,32 @@ public class CoverageRiskAssessmentService {
     }
 
     /**
-     * Build feature map for ML prediction with variation based on assurance ID (unique per assurance)
+     * Build feature map for ML prediction using actual patient medical data
      */
     private Map<String, Object> buildFeatureMap(MedicalHistoryDto medicalHistory, Long assuranceId) {
         Map<String, Object> features = new HashMap<>();
         
-        // Use assurance ID as seed for variation - each assurance gets different data
-        int seed = (int) (assuranceId % 100);
-        
-        features.put("mmse", medicalHistory.getMmse() != null ? medicalHistory.getMmse() : (18 + seed % 12));
-        features.put("adl", medicalHistory.getAdl() != null ? medicalHistory.getAdl() : (3 + seed % 7));
-        features.put("functional_assessment", medicalHistory.getFunctionalAssessment() != null ? medicalHistory.getFunctionalAssessment() : (4 + seed % 6));
-        features.put("smoking", medicalHistory.getSmoking() != null ? medicalHistory.getSmoking() : (seed % 2 == 0 && seed > 50));
-        features.put("cardiovascular_disease", medicalHistory.getCardiovascularDisease() != null ? medicalHistory.getCardiovascularDisease() : (seed > 60));
-        features.put("diabetes", medicalHistory.getDiabetes() != null ? medicalHistory.getDiabetes() : (seed > 70));
-        features.put("depression", medicalHistory.getDepression() != null ? medicalHistory.getDepression() : (seed > 50));
-        features.put("head_injury", medicalHistory.getHeadInjury() != null ? medicalHistory.getHeadInjury() : (seed > 75));
-        features.put("hypertension", medicalHistory.getHypertension() != null ? medicalHistory.getHypertension() : (seed > 40));
-        features.put("bmi", medicalHistory.getBmi() != null ? medicalHistory.getBmi() : (20.0 + (seed % 10)));
-        features.put("cholesterol_total", medicalHistory.getCholesterolTotal() != null ? medicalHistory.getCholesterolTotal() : (150.0 + seed * 1.5));
-        features.put("alcohol_consumption", medicalHistory.getAlcoholConsumption() != null ? medicalHistory.getAlcoholConsumption() : (1 + (seed % 6)));
-        features.put("physical_activity", medicalHistory.getPhysicalActivity() != null ? medicalHistory.getPhysicalActivity() : ((seed % 8) + 1));
-        features.put("diet_quality", medicalHistory.getDietQuality() != null ? medicalHistory.getDietQuality() : ((seed % 7) + 1));
-        features.put("sleep_quality", medicalHistory.getSleepQuality() != null ? medicalHistory.getSleepQuality() : ((seed % 6) + 1));
-        features.put("memory_complaints", medicalHistory.getMemoryComplaints() != null ? medicalHistory.getMemoryComplaints() : (seed > 45));
-        features.put("behavioral_problems", medicalHistory.getBehavioralProblems() != null ? medicalHistory.getBehavioralProblems() : (seed > 65));
+        // Use actual patient data without seed-based variation
+        features.put("mmse", medicalHistory.getMmse() != null ? medicalHistory.getMmse() : 24);
+        features.put("adl", medicalHistory.getAdl() != null ? medicalHistory.getAdl() : 6);
+        features.put("functional_assessment", medicalHistory.getFunctionalAssessment() != null ? medicalHistory.getFunctionalAssessment() : 4);
+        features.put("smoking", medicalHistory.getSmoking() != null ? medicalHistory.getSmoking() : false);
+        features.put("cardiovascular_disease", medicalHistory.getCardiovascularDisease() != null ? medicalHistory.getCardiovascularDisease() : false);
+        features.put("diabetes", medicalHistory.getDiabetes() != null ? medicalHistory.getDiabetes() : false);
+        features.put("depression", medicalHistory.getDepression() != null ? medicalHistory.getDepression() : false);
+        features.put("head_injury", medicalHistory.getHeadInjury() != null ? medicalHistory.getHeadInjury() : false);
+        features.put("hypertension", medicalHistory.getHypertension() != null ? medicalHistory.getHypertension() : false);
+        features.put("bmi", medicalHistory.getBmi() != null ? medicalHistory.getBmi() : 25.0);
+        features.put("cholesterol_total", medicalHistory.getCholesterolTotal() != null ? medicalHistory.getCholesterolTotal() : 200.0);
+        features.put("alcohol_consumption", medicalHistory.getAlcoholConsumption() != null ? medicalHistory.getAlcoholConsumption() : 1);
+        features.put("physical_activity", medicalHistory.getPhysicalActivity() != null ? medicalHistory.getPhysicalActivity() : 4);
+        features.put("diet_quality", medicalHistory.getDietQuality() != null ? medicalHistory.getDietQuality() : 4);
+        features.put("sleep_quality", medicalHistory.getSleepQuality() != null ? medicalHistory.getSleepQuality() : 3);
+        features.put("memory_complaints", medicalHistory.getMemoryComplaints() != null ? medicalHistory.getMemoryComplaints() : false);
+        features.put("behavioral_problems", medicalHistory.getBehavioralProblems() != null ? medicalHistory.getBehavioralProblems() : false);
 
-        log.debug("Generated features for assuranceId: {} with seed: {} - MMSE: {}, ADL: {}, Smoking: {}", 
-                  assuranceId, seed, features.get("mmse"), features.get("adl"), features.get("smoking"));
+        log.debug("Generated features for patient from medical history - MMSE: {}, ADL: {}, Smoking: {}", 
+                  features.get("mmse"), features.get("adl"), features.get("smoking"));
         return features;
     }
 
@@ -190,21 +182,19 @@ public class CoverageRiskAssessmentService {
     }
 
     /**
-     * Calculate composite medical complexity score (0-100) - varies by assurance
+     * Calculate composite medical complexity score (0-100) based on actual patient data
      */
     private Integer calculateMedicalComplexityScore(
             MLPredictionDto mlPrediction,
             List<AlertDto> alerts,
-            MedicalHistoryDto medicalHistory,
-            int assuranceSeed) {
+            MedicalHistoryDto medicalHistory) {
 
         double score = 0.0;
 
-        // Component 1: ML Prediction Score (35% weight) - ADJUSTED by assurance seed
+        // Component 1: ML Prediction Score (35% weight)
         double mlComponent = mlPrediction.getProbability() * 35.0;
-        mlComponent = mlComponent + (assuranceSeed - 50) * 0.2; // Adds variation -10 to +10
         score += Math.max(0, Math.min(35, mlComponent));
-        log.debug("ML component: {} (base: {}, seed adjustment: {})", score, mlPrediction.getProbability() * 35.0, (assuranceSeed - 50) * 0.2);
+        log.debug("ML component: {} (base: {})", Math.max(0, Math.min(35, mlComponent)), mlPrediction.getProbability() * 35.0);
 
         // Component 2: Alert Pattern Analysis (23% weight)
         long criticalCount = alerts.stream().filter(a -> "CRITICAL".equals(a.getSeverity())).count();
@@ -213,15 +203,15 @@ public class CoverageRiskAssessmentService {
         score += alertComponent;
         log.debug("Alert component - critical: {}, warning: {}, total: {}", criticalCount, warningCount, alertComponent);
 
-        // Component 3: Cognitive Metrics (15% weight) - VARIES BY SEED
+        // Component 3: Cognitive Metrics (15% weight)
         int cognitiveScore = 0;
-        if (medicalHistory.getMmse() != null && medicalHistory.getMmse() < (18 + assuranceSeed % 10)) {
+        if (medicalHistory.getMmse() != null && medicalHistory.getMmse() < 24) {
             cognitiveScore += 10;
         }
-        if (medicalHistory.getFunctionalAssessment() != null && medicalHistory.getFunctionalAssessment() < (4 + assuranceSeed % 6)) {
+        if (medicalHistory.getFunctionalAssessment() != null && medicalHistory.getFunctionalAssessment() < 4) {
             cognitiveScore += 8;
         }
-        if (medicalHistory.getAdl() != null && medicalHistory.getAdl() < (3 + assuranceSeed % 7)) {
+        if (medicalHistory.getAdl() != null && medicalHistory.getAdl() < 6) {
             cognitiveScore += 9;
         }
         score += cognitiveScore;
@@ -232,25 +222,22 @@ public class CoverageRiskAssessmentService {
         score += Math.min(10.0, comorbidityCount * 2.0);
         log.debug("Comorbidity component: {} (count: {})", Math.min(10.0, comorbidityCount * 2.0), comorbidityCount);
 
-        // Component 5: Risk Factor Accumulation (10% weight) - VARIES BY SEED
+        // Component 5: Risk Factor Accumulation (10% weight)
         double riskFactorScore = 0.0;
         if (medicalHistory.getCardiovascularDisease() != null && medicalHistory.getCardiovascularDisease() &&
-            medicalHistory.getDiabetes() != null && medicalHistory.getDiabetes() &&
-            assuranceSeed > 40) {
+            medicalHistory.getDiabetes() != null && medicalHistory.getDiabetes()) {
             riskFactorScore += 4.0;
         }
         if (medicalHistory.getSmoking() != null && medicalHistory.getSmoking() &&
-            medicalHistory.getHypertension() != null && medicalHistory.getHypertension() &&
-            assuranceSeed > 50) {
+            medicalHistory.getHypertension() != null && medicalHistory.getHypertension()) {
             riskFactorScore += 3.0;
         }
         if (medicalHistory.getDepression() != null && medicalHistory.getDepression() &&
-            medicalHistory.getHeadInjury() != null && medicalHistory.getHeadInjury() &&
-            assuranceSeed > 60) {
+            medicalHistory.getHeadInjury() != null && medicalHistory.getHeadInjury()) {
             riskFactorScore += 2.0;
         }
         score += Math.min(10.0, riskFactorScore);
-        log.debug("Risk factor component: {} (seed: {})", Math.min(10.0, riskFactorScore), assuranceSeed);
+        log.debug("Risk factor component: {}", Math.min(10.0, riskFactorScore));
 
         // Component 6: Allergy Risk (7% weight)
         double allergyScore = 0.0;
@@ -301,17 +288,16 @@ public class CoverageRiskAssessmentService {
     }
 
     /**
-     * Estimate annual claim cost - varies SIGNIFICANTLY by assurance seed
+     * Estimate annual claim cost based on medical complexity alone
      */
-    private Double estimateAnnualClaimCost(Integer complexityScore, int assuranceSeed) {
-        // Base formula + MAJOR seed variation for different pricing per assurance
-        double seedMultiplier = 0.7 + (assuranceSeed % 50) * 0.01; // Varies from 0.7 to 1.2 (50% variation!)
+    private Double estimateAnnualClaimCost(Integer complexityScore) {
+        // Base formula without arbitrary seed variation
         double complexityComponent = (complexityScore / 100.0 * 3.0); // Up to 3x multiplier
-        double totalMultiplier = seedMultiplier + complexityComponent;
+        double totalMultiplier = 1.0 + complexityComponent;
         double estimatedCost = BASE_CLAIM_COST * totalMultiplier;
         
-        log.debug("COST VARIATION - complexityScore: {}, seed: {}, seedMultiplier: {}, complexityComponent: {}, totalMultiplier: {}, FINAL COST: ${}",
-                  complexityScore, assuranceSeed, seedMultiplier, complexityComponent, totalMultiplier, estimatedCost);
+        log.debug("Estimated cost calculation - complexityScore: {}, totalMultiplier: {}, FINAL COST: ${}",
+                  complexityScore, totalMultiplier, estimatedCost);
         return estimatedCost;
     }
 
@@ -434,79 +420,6 @@ public class CoverageRiskAssessmentService {
         return analysis;
     }
 
-    /**
-     * Generate completely different test medical data based on assurance seed
-     * This ensures EACH ASSURANCE has unique input data even with same patient
-     */
-    private MedicalHistoryDto generateTestMedicalData(int seed) {
-        MedicalHistoryDto dto = new MedicalHistoryDto();
-        
-        // Generate completely different profiles based on seed with MORE VARIATION
-        int profileType = seed % 5;
-        
-        switch (profileType) {
-            case 0: // Profile A: EXCELLENT HEALTH - Low risk
-                dto.setMmse(29 + (seed % 2));           // 29-30 (excellent cognition)
-                dto.setAdl(10);                         // Perfect daily activities
-                dto.setBmi(21.0 + (seed % 3) * 0.5);    // 21-22.5 (healthy weight)
-                dto.setSmoking(false);
-                dto.setCardiovascularDisease(false);
-                dto.setDiabetes(false);
-                dto.setFunctionalAssessment(20);        // Excellent function
-                dto.setFamilyHistory("No significant family history of dementia");
-                break;
-                
-            case 1: // Profile B: MILD COGNITIVE IMPAIRMENT - Medium risk
-                dto.setMmse(24 + (seed % 3));           // 24-26 (mild impairment)
-                dto.setAdl(8 + (seed % 2));             // 8-9 (some difficulty)
-                dto.setBmi(24.0 + (seed % 4) * 0.5);    // 24-26 (overweight)
-                dto.setSmoking(seed % 2 == 0);          // Sometimes smokes
-                dto.setCardiovascularDisease(false);
-                dto.setDiabetes(seed % 3 == 0);         // Sometimes diabetic
-                dto.setFunctionalAssessment(15 + (seed % 3));  // 15-17 (moderate function)
-                dto.setFamilyHistory("Mother had mild cognitive impairment");
-                break;
-                
-            case 2: // Profile C: MODERATE DEMENTIA + COMORBIDITIES - High risk
-                dto.setMmse(18 + (seed % 4));           // 18-21 (moderate dementia)
-                dto.setAdl(5 + (seed % 2));             // 5-6 (significant help needed)
-                dto.setBmi(27.0 + (seed % 5) * 0.5);    // 27-29.5 (obese)
-                dto.setSmoking(true);                   // Smokes
-                dto.setCardiovascularDisease(true);     // Has CVD
-                dto.setDiabetes(seed % 2 == 0);         // Often diabetic
-                dto.setFunctionalAssessment(10 + (seed % 3));  // 10-12 (poor function)
-                dto.setFamilyHistory("Both parents had Alzheimer's disease");
-                break;
-                
-            case 3: // Profile D: SEVERE DEMENTIA + MULTIPLE COMORBIDITIES - Very high risk
-                dto.setMmse(12 + (seed % 5));           // 12-16 (severe dementia)
-                dto.setAdl(3 + (seed % 2));             // 3-4 (major assistance needed)
-                dto.setBmi(31.0 + (seed % 6) * 0.5);    // 31-34 (severely obese)
-                dto.setSmoking(true);                   // Smokes
-                dto.setCardiovascularDisease(true);     // Has CVD
-                dto.setDiabetes(true);                  // Diabetic
-                dto.setFunctionalAssessment(6 + (seed % 3));   // 6-8 (very poor function)
-                dto.setFamilyHistory("Multiple family members with early-onset dementia");
-                break;
-                
-            case 4: // Profile E: END-STAGE DEMENTIA - Critical risk
-                dto.setMmse(6 + (seed % 6));            // 6-11 (end-stage)
-                dto.setAdl(1 + (seed % 2));             // 1-2 (total dependence)
-                dto.setBmi(19.0 + (seed % 8) * 0.5);    // 19-23 (underweight)
-                dto.setSmoking(seed % 3 == 0);          // Rarely smokes
-                dto.setCardiovascularDisease(seed % 2 == 0); // Sometimes CVD
-                dto.setDiabetes(seed % 3 == 0);         // Sometimes diabetic
-                dto.setFunctionalAssessment(3 + (seed % 2));   // 3-4 (critical function)
-                dto.setFamilyHistory("Strong genetic predisposition to dementia");
-                break;
-        }
-        
-        log.info("Generated UNIQUE medical profile (seed: {}, profile: {}): MMSE={}, ADL={}, BMI={}, Smoking={}, CVD={}, Diabetes={}", 
-                 seed, profileType, dto.getMmse(), dto.getAdl(), dto.getBmi(), dto.getSmoking(), 
-                 dto.getCardiovascularDisease(), dto.getDiabetes());
-        
-        return dto;
-    }
 
     /**
      * Get existing assessment or null
@@ -552,12 +465,8 @@ public class CoverageRiskAssessmentService {
         log.info("Updating existing risk assessment for assuranceId: {}, patientId: {}", assuranceId, patientId);
         
         try {
-            // Step 0: Generate unique seed for this assurance
-            int assuranceSeed = (int) (assuranceId % 100);
-            
-            // Step 1: Fetch medical history OR generate test data if empty
+            // Step 1: Fetch medical history from authoritative source
             MedicalHistoryDto medicalHistory = fetchMedicalHistory(patientId);
-            medicalHistory = generateTestMedicalData(assuranceSeed);
             
             // Step 2: Get ML prediction
             MLPredictionDto mlPrediction = getMlPrediction(medicalHistory, assuranceId);
@@ -567,14 +476,14 @@ public class CoverageRiskAssessmentService {
             
             // Step 4: Calculate composite medical complexity score
             Integer medicalComplexityScore = calculateMedicalComplexityScore(
-                    mlPrediction, activeAlerts, medicalHistory, assuranceSeed
+                    mlPrediction, activeAlerts, medicalHistory
             );
             
             // Step 5: Determine coverage level
             String coverageLevel = determineCoverageLevel(medicalComplexityScore, mlPrediction.getRiskLevel());
             
             // Step 6: Estimate annual claim cost
-            Double estimatedClaimCost = estimateAnnualClaimCost(medicalComplexityScore, assuranceSeed);
+            Double estimatedClaimCost = estimateAnnualClaimCost(medicalComplexityScore);
             
             // Step 7: Generate recommended procedures
             List<String> recommendedProcedures = generateRecommendedProcedures(medicalHistory, mlPrediction);

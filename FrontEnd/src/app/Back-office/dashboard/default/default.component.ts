@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -48,6 +48,7 @@ import { ConsultationService } from 'src/app/core/services/consultation.service'
 export class DefaultComponent implements OnInit {
   private iconService = inject(IconService);
   private consultationService = inject(ConsultationService);
+  private cdr = inject(ChangeDetectorRef);
 
   statsLoading = true;
   statsError = '';
@@ -81,12 +82,15 @@ export class DefaultComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadStats();
+    setTimeout(() => {
+      this.loadStats();
+    }, 0);
   }
 
   loadStats(): void {
     this.statsLoading = true;
     this.statsError = '';
+    this.cdr.detectChanges();
     
     forkJoin({
       patients: this.consultationService.getPatients(),
@@ -136,10 +140,12 @@ export class DefaultComponent implements OnInit {
         this.updateChartData(byType, byStatus, advStats?.monthlyDistribution);
         this.initExtraCharts(byType, byStatus, resStats?.byStatus);
         this.statsLoading = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         this.statsError = err?.error?.message || err?.message || 'Impossible de charger les statistiques.';
         this.statsLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }

@@ -7,6 +7,12 @@
     </button>
   </div>
 
+  <!-- Coverage Optimizer Section -->
+  <app-patient-coverage-optimizer></app-patient-coverage-optimizer>
+
+  <!-- Rentability Analysis Section -->
+  <app-patient-rentability-analysis [patientId]="currentPatientId"></app-patient-rentability-analysis>
+
   <!-- Success Message -->
   <div class="alert alert-success" *ngIf="successMessage">
     <div class="alert-content">

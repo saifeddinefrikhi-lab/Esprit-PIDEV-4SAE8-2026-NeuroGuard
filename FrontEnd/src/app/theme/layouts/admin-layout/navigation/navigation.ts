@@ -156,7 +156,24 @@ export const NavigationItems: NavigationItem[] = [
         icon: 'file-text', // Ant Design file-text icon
       },
     ]
-  },
+  }
+  // MOVED TO PATIENT: The Insurance Analytics optimizer is now exclusively in the patient workspace
+  // {
+  //   id: 'insurance-analytics',
+  //   title: 'Insurance Analytics',
+  //   type: 'group',
+  //   icon: 'appstore',
+  //   children: [
+  //     {
+  //       id: 'assurance-optimizer',
+  //       title: 'Assurance Optimizer',
+  //       type: 'item',
+  //       url: '/admin/assurance/optimizer',
+  //       classes: 'nav-item',
+  //       icon: 'appstore',
+  //     }
+  //   ]
+  // }
 
 ];
 

@@ -45,6 +45,11 @@ export const routes: Routes = [
         path: 'admin/assurance',
         loadComponent: () => import('./Back-office/pages/assurance-admin/assurance-admin.component').then((c) => c.AssuranceAdminComponent)
       },
+      // MOVED TO PATIENT: assurance/optimizer is now in patient/assurance management
+      // {
+      //   path: 'admin/assurance/optimizer',
+      //   loadComponent: () => import('./Back-office/pages/assurance-admin/assurance-optimizer/assurance-optimizer.component').then((c) => c.AssuranceOptimizerComponent)
+      // },
     ]
   },
 

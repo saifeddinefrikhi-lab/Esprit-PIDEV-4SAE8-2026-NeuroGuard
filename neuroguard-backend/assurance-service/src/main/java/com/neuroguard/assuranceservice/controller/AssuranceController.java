@@ -11,6 +11,7 @@ import com.neuroguard.assuranceservice.service.CoverageRiskAssessmentService;
 import com.neuroguard.assuranceservice.service.StatisticsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,27 +21,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/assurances")
 @RequiredArgsConstructor
+@Slf4j
 public class AssuranceController {
 
     private final AssuranceService assuranceService;
     private final CoverageRiskAssessmentService coverageRiskAssessmentService;
     private final StatisticsService statisticsService;
-
-    // TEMPORARY TEST ENDPOINT - Remove after testing
-    @GetMapping("/test/{assuranceId}")
-    public ResponseEntity<String> testRiskAssessmentData(@PathVariable Long assuranceId) {
-        try {
-            CoverageRiskAssessment assessment = coverageRiskAssessmentService.calculateRiskAssessment(assuranceId, 9L);
-            String result = String.format("Assurance %d -> Medical Complexity: %d, Alzheimer's Risk: %.2f%%, Est. Cost: $%.0f",
-                assuranceId,
-                assessment.getMedicalComplexityScore(),
-                assessment.getAlzheimersPredictionScore() * 100,
-                assessment.getEstimatedAnnualClaimCost());
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
-        }
-    }
 
     @PostMapping
     public ResponseEntity<AssuranceResponseDto> createAssurance(@Valid @RequestBody AssuranceRequestDto request) {
@@ -92,13 +78,12 @@ public class AssuranceController {
             @PathVariable Long assuranceId,
             @RequestParam Long patientId) {
         try {
-            System.out.println("DEBUG: generateCoverageAssessment called - assuranceId: " + assuranceId + ", patientId: " + patientId);
+            log.debug("generateCoverageAssessment called - assuranceId: {}, patientId: {}", assuranceId, patientId);
             CoverageRiskAssessment assessment = coverageRiskAssessmentService.recalculateRiskAssessment(assuranceId, patientId);
-            System.out.println("DEBUG: Successfully generated assessment, returning to client");
+            log.debug("Successfully generated assessment, returning to client");
             return ResponseEntity.ok(mapToDto(assessment));
         } catch (Exception e) {
-            System.out.println("DEBUG: Exception in generateCoverageAssessment: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Exception in generateCoverageAssessment for assuranceId: {}", assuranceId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new CoverageRiskAssessmentDto()); // Return empty DTO instead of no body
         }
@@ -109,16 +94,15 @@ public class AssuranceController {
      */
     @GetMapping("/{assuranceId}/risk-assessment")
     public ResponseEntity<CoverageRiskAssessmentDto> getRiskAssessment(@PathVariable Long assuranceId) {
-        System.out.println("DEBUG: Fetching risk assessment for assuranceId: " + assuranceId);
+        log.debug("Fetching risk assessment for assuranceId: {}", assuranceId);
         CoverageRiskAssessment assessment = coverageRiskAssessmentService.getAssessmentByAssuranceId(assuranceId);
         if (assessment == null) {
-            System.out.println("DEBUG: No assessment found for assuranceId: " + assuranceId);
+            log.debug("No assessment found for assuranceId: {}", assuranceId);
             return ResponseEntity.notFound().build();
         }
-        System.out.println("DEBUG: Found assessment - assuranceId: " + assessment.getAssuranceId() + 
-                         ", patientId: " + assessment.getPatientId() + 
-                         ", complexityScore: " + assessment.getMedicalComplexityScore() +
-                         ", estimatedCost: " + assessment.getEstimatedAnnualClaimCost());
+        log.debug("Found assessment - assuranceId: {}, patientId: {}, complexityScore: {}, estimatedCost: {}", 
+                 assessment.getAssuranceId(), assessment.getPatientId(), 
+                 assessment.getMedicalComplexityScore(), assessment.getEstimatedAnnualClaimCost());
         return ResponseEntity.ok(mapToDto(assessment));
     }
 
@@ -149,8 +133,7 @@ public class AssuranceController {
             StatisticsDto.PatientStatistics stats = statisticsService.getPatientStatistics(patientId);
             return ResponseEntity.ok(stats);
         } catch (Exception e) {
-            System.out.println("DEBUG: Error getting patient statistics: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error getting patient statistics for patientId: {}", patientId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -165,8 +148,7 @@ public class AssuranceController {
             StatisticsDto.AssuranceStatistics stats = statisticsService.getAssuranceStatistics(assuranceId);
             return ResponseEntity.ok(stats);
         } catch (Exception e) {
-            System.out.println("DEBUG: Error getting assurance statistics: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error getting assurance statistics for assuranceId: {}", assuranceId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

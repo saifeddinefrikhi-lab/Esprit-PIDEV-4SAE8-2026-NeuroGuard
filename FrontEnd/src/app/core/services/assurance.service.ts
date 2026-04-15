@@ -84,4 +84,16 @@ export class AssuranceService {
   bulkExportAssurancePDF(ids: number[]): Observable<Blob> {
     return this.http.post(`${this.apiUrl}/reports/bulk-export`, ids, { responseType: 'blob' });
   }
+
+  // Simulation & Optimization Methods
+  private simUrl = 'http://localhost:8083/api/simulations';
+
+  simulateProcedure(patientId: number, procedureName: string): Observable<any> {
+    return this.http.get<any>(`${this.simUrl}/procedure?patientId=${patientId}&procedureName=${procedureName}`);
+  }
+
+  getRentabilityAnalysis(patientId: number): Observable<any> {
+    return this.http.get<any>(`${this.simUrl}/rentability/${patientId}`);
+  }
 }
+

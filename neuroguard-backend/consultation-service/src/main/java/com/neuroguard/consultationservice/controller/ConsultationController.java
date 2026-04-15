@@ -185,6 +185,14 @@ public class ConsultationController {
         return consultationService.getConsultationsByPatient(patientId);
     }
 
+    /**
+     * Internal endpoint for other services (like Assurance) to fetch history
+     */
+    @GetMapping("/all/patient/{patientId}")
+    public List<ConsultationResponse> getConsultationsForPatient(@PathVariable Long patientId) {
+        return consultationService.getConsultationsByPatient(patientId);
+    }
+
     @GetMapping("/caregiver")
     @PreAuthorize("hasRole('CAREGIVER')")
     public List<ConsultationResponse> getMyConsultationsAsCaregiver(
