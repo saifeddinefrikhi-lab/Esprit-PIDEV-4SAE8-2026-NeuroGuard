@@ -85,21 +85,11 @@ public class ReservationService {
 
     @Transactional
     public void deleteReservation(Long id) {
-        System.out.println("Processing delete for reservation ID: " + id);
-        
         Reservation reservation = reservationRepository.findById(id)
-                .orElseThrow(() -> {
-                    System.err.println("Reservation not found with ID: " + id);
-                    return new RuntimeException("Reservation not found");
-                });
-        
-        System.out.println("Found reservation with status: " + reservation.getStatus());
-        
-        // Allow all reservations to be deleted as requested
-        System.out.println("Marking reservation " + id + " as DELETED");
-        reservation.setStatus(ReservationStatus.DELETED);
-        reservationRepository.save(reservation);
-        System.out.println("Reservation " + id + " marked as DELETED successfully");
+                .orElseThrow(() -> new RuntimeException("Reservation not found"));
+
+        // Use physical deletion to avoid DB enum/schema mismatch issues on soft-delete status updates.
+        reservationRepository.delete(reservation);
     }
 
     @Transactional
@@ -298,15 +288,28 @@ public class ReservationService {
         try {
             Map<String, Object> patient = userServiceClient.getUserById(r.getPatientId());
             if (patient != null) {
-                dto.setPatientName(patient.get("firstName") + " " + patient.get("lastName"));
+                Object firstName = patient.get("firstName");
+                Object lastName = patient.get("lastName");
+                if (firstName != null && lastName != null) {
+                    dto.setPatientName(firstName.toString() + " " + lastName.toString());
+                } else {
+                    dto.setPatientName("Patient #" + r.getPatientId());
+                }
             }
             
             Map<String, Object> provider = userServiceClient.getUserById(r.getProviderId());
             if (provider != null) {
-                dto.setProviderName(provider.get("firstName") + " " + provider.get("lastName"));
+                Object firstName = provider.get("firstName");
+                Object lastName = provider.get("lastName");
+                if (firstName != null && lastName != null) {
+                    dto.setProviderName(firstName.toString() + " " + lastName.toString());
+                } else {
+                    dto.setProviderName("Provider #" + r.getProviderId());
+                }
             }
-        } catch (FeignException e) {
+        } catch (Exception e) {
             // Log fallback silently if user-service is unavailable or user deleted
+            System.out.println("Warning: Could not fetch user details for reservation " + r.getId() + ": " + e.getMessage());
         }
         
         return dto;

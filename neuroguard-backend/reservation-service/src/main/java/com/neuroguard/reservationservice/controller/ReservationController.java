@@ -38,16 +38,20 @@ public class ReservationController {
      * Delete a reservation (soft delete - mark as DELETED)
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteReservation(@PathVariable Long id) {
+    public ResponseEntity<?> deleteReservation(@PathVariable Long id) {
         try {
             System.out.println("DELETE request for reservation ID: " + id);
             reservationService.deleteReservation(id);
             System.out.println("Reservation " + id + " deleted successfully");
             return ResponseEntity.noContent().build();
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println("Error deleting reservation " + id + ": " + e.getMessage());
             e.printStackTrace();
-            throw e;
+            return ResponseEntity.status(400).body(java.util.Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            System.err.println("Unexpected error deleting reservation " + id + ": " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(java.util.Map.of("error", "Failed to delete reservation: " + e.getMessage()));
         }
     }
 

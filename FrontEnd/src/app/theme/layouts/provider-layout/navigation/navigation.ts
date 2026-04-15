@@ -89,7 +89,7 @@ export const NavigationItems: NavigationItem[] = [
         title: 'Schedule Appointments',
         type: 'item',
         classes: 'nav-item',
-        url: '/provider/appointments/schedule', // Path to schedule appointments
+        url: '/provider/consultations', // Existing route for scheduling consultations
         icon: 'calendar', // Ant Design calendar icon
       },
       {

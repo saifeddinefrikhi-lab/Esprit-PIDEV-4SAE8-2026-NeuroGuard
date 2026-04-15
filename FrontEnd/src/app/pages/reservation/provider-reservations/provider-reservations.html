@@ -35,7 +35,9 @@
                      <button class="btn btn-sm btn-success rounded-pill fw-bold" (click)="updateStatus(res.id!, 'ACCEPTED')"><i class="fas fa-check me-1"></i> Accept</button>
                      <button class="btn btn-sm btn-danger rounded-pill fw-bold" (click)="updateStatus(res.id!, 'REJECTED')"><i class="fas fa-times me-1"></i> Reject</button>
                   </ng-container>
-                  <button class="btn btn-sm btn-outline-secondary rounded-pill" *ngIf="res.status !== 'PENDING'" (click)="deleteReservation(res.id!)"><i class="fas fa-trash"></i></button>
+                  <button class="btn btn-sm btn-outline-secondary rounded-pill" 
+                          [disabled]="res.status === 'DELETED' || res.status === 'COMPLETED'"
+                          (click)="deleteReservation(res.id!)"><i class="fas fa-trash"></i></button>
                 </div>
               </td>
             </tr>

@@ -173,6 +173,8 @@ export class AuthService {
       if (url.includes('/auth/login')) {
         if (error.status === 401 || error.status === 403) {
           errorMessage = 'Invalid username or password.';
+        } else if (error.status === 503) {
+          errorMessage = 'Authentication service is temporarily unavailable. Please retry in a few seconds.';
         } else if (raw) {
           errorMessage = raw;
         } else {

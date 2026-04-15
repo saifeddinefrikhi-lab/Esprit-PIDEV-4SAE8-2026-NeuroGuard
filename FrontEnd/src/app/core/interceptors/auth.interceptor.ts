@@ -8,26 +8,22 @@ export class AuthInterceptor implements HttpInterceptor {
   constructor(private auth: AuthService) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const token = this.auth.getToken(); // reads from localStorage
-    if (token) {
-      req = req.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      console.log('[AuthInterceptor] Added token to request:', req.url);
-      console.log('[AuthInterceptor] Token (first 20 chars):', token.substring(0, 20) + '...');
-      
-      // Decode and log role for debugging
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        console.log('[AuthInterceptor] Token role:', payload.role);
-      } catch (e) {
-        console.error('[AuthInterceptor] Failed to decode token');
-      }
-    } else {
-      console.warn('[AuthInterceptor] No token found for request:', req.url);
+    const isAuthRequest = req.url.includes('/auth/login') || req.url.includes('/auth/register');
+    if (isAuthRequest) {
+      return next.handle(req);
     }
+
+    const token = this.auth.getToken(); // reads from localStorage
+    if (!token) {
+      return next.handle(req);
+    }
+
+    req = req.clone({
+      setHeaders: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
     return next.handle(req);
   }
 }

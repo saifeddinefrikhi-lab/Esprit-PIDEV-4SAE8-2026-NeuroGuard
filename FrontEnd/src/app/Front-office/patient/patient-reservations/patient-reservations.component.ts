@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -44,8 +44,7 @@ export class PatientReservationsComponent implements OnInit {
     private reservationService: ReservationService,
     private authService: AuthService,
     private fb: FormBuilder,
-    private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef
+    private route: ActivatedRoute
   ) {
     this.reservationForm = this.fb.group({
       providerId: ['', Validators.required],
@@ -173,14 +172,12 @@ export class PatientReservationsComponent implements OnInit {
     if (selectedDate) {
       this.onDateChange(selectedDate);
     }
-    this.cdr.detectChanges();
   }
 
   selectProviderForBooking(provider: Provider): void {
     this.selectedProvider = provider;
     this.reservationForm.patchValue({ providerId: provider.id });
     this.onProviderChange();
-    this.cdr.detectChanges();
   }
 
   createReservation(): void {

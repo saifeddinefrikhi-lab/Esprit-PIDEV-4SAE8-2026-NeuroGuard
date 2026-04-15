@@ -182,7 +182,7 @@
           </button>
           <button class="btn btn-sm btn-outline-danger" 
                   (click)="deleteReservation(reservation.id!)"
-                  [disabled]="reservation.status !== 'PENDING'">
+                  [disabled]="reservation.status === 'DELETED' || reservation.status === 'COMPLETED'">
             <i class="bi bi-trash"></i> Delete
           </button>
         </div>
