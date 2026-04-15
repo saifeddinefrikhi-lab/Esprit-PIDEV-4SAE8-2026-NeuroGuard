@@ -137,12 +137,30 @@ export class AuthService {
 
   // Login with Google
   googleLogin(idToken: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/google`, { idToken }, {
-      responseType: 'text'
-    }).pipe(
-      tap((responseBody: string) => {
-        const token = this.extractJwtToken(responseBody);
+    return this.http.post<any>(`${this.apiUrl}/auth/google`, { idToken }).pipe(
+      tap((response: any) => {
+        // Response can be { token: "..." } or { newUser: true, ... }
+        if (response.newUser) {
+          // Do nothing here, the component will handle the modal
+          return;
+        }
+
+        const token = this.extractJwtToken(response);
         if (!token) throw new Error('Invalid token received from Google authentication.');
+        
+        localStorage.setItem('authToken', token);
+        this.initializeCurrentUser();
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  // Finalize Google Signup with Role selection
+  googleComplete(idToken: string, role: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/auth/google/complete`, { idToken, role }).pipe(
+      tap((response: any) => {
+        const token = this.extractJwtToken(response);
+        if (!token) throw new Error('Failed to complete registration.');
         
         localStorage.setItem('authToken', token);
         this.initializeCurrentUser();
@@ -244,6 +262,20 @@ export class AuthService {
   }
 
   private extractJwtToken(rawValue: unknown): string | null {
+    if (!rawValue) {
+      return null;
+    }
+
+    // Handle case where rawValue is already a parsed object
+    if (typeof rawValue === 'object') {
+      const obj = rawValue as any;
+      const candidate = obj.token || obj.accessToken || obj.jwt;
+      if (typeof candidate === 'string' && this.jwtPattern.test(candidate.trim())) {
+        return candidate.trim();
+      }
+      return null;
+    }
+
     if (typeof rawValue !== 'string' || !rawValue.trim()) {
       return null;
     }

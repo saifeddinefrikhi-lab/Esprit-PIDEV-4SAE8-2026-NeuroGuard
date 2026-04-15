@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, NgZone } from '@angular/core';
+import { Component, AfterViewInit, NgZone, ChangeDetectorRef } from '@angular/core';
 declare var google: any;
 import { AuthService } from '../../../core/services/auth.service';  
 import { Router } from '@angular/router';
@@ -19,12 +19,17 @@ export class AuthLoginComponent implements AfterViewInit {
   successMessage = '';
   isLoading = false;
   showPassword = false;
+  
+  // Google Role Selection Modal
+  public showRoleModal = false;
+  public pendingGoogleToken = '';
 
   constructor(
     private authService: AuthService, 
     private router: Router,
     private fb: FormBuilder,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private cdr: ChangeDetectorRef
   ) {
     this.loginForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3)]],
@@ -54,9 +59,20 @@ export class AuthLoginComponent implements AfterViewInit {
 
   private handleGoogleCredential(response: any): void {
     console.log('Received Google credential');
+    const credential = response.credential;
     this.isLoading = true;
-    this.authService.googleLogin(response.credential).subscribe({
-      next: () => {
+    
+    this.authService.googleLogin(credential).subscribe({
+      next: (res) => {
+        if (res && res.newUser) {
+          console.log('New user detected, showing role selection');
+          this.pendingGoogleToken = credential;
+          this.showRoleModal = true;
+          this.isLoading = false;
+          this.cdr.detectChanges(); // Manual change detection
+          return;
+        }
+
         this.successMessage = 'Google login successful! Redirecting...';
         this.isLoading = false;
         setTimeout(() => {
@@ -70,6 +86,34 @@ export class AuthLoginComponent implements AfterViewInit {
         console.error('Google login error:', error);
         this.errorMessage = error.message || 'Google authentication failed.';
         this.isLoading = false;
+      }
+    });
+  }
+
+  selectRole(role: string): void {
+    if (!this.pendingGoogleToken) return;
+    
+    this.isLoading = true;
+    this.showRoleModal = false;
+    
+    this.authService.googleComplete(this.pendingGoogleToken, role).subscribe({
+      next: () => {
+        this.successMessage = 'Account created successfully! Redirecting...';
+        this.isLoading = false;
+        this.pendingGoogleToken = '';
+        
+        setTimeout(() => {
+          const token = localStorage.getItem('authToken');
+          if (token) {
+            this.authService.redirectBasedOnRole(this.authService.getRoleFromToken(token));
+          }
+        }, 1500);
+      },
+      error: (err) => {
+        console.error('Registration completion failed:', err);
+        this.errorMessage = err.message || 'Failed to complete registration.';
+        this.isLoading = false;
+        this.pendingGoogleToken = '';
       }
     });
   }

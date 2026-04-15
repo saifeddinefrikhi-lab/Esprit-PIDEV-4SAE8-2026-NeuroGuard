@@ -3,6 +3,8 @@ package com.neuroguard.userservice.entities;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -21,6 +23,7 @@ public class PasswordResetToken {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(name = "fk_password_reset_token_user"))
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
     
     @Column(nullable = false)

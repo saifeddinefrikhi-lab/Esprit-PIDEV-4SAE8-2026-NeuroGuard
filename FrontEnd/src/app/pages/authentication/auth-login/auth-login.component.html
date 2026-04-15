@@ -1,3 +1,32 @@
+<!-- Role Selection Modal for Google Sign-Up -->
+<div class="role-modal-container" *ngIf="showRoleModal">
+  <div class="role-modal-overlay"></div>
+  <div class="role-modal">
+    <div class="modal-content-wrapper">
+      <h2 class="modal-title">Welcome to NeuroGuard</h2>
+      <p class="modal-subtitle">To complete your registration, please select your primary role:</p>
+      
+      <div class="role-cards-container">
+        <div class="role-card" (click)="selectRole('PATIENT')">
+          <div class="role-icon">
+            <i class="ti ti-user-circle"></i>
+          </div>
+          <div class="role-info">
+            <span class="role-name">Patient</span>
+            <p class="role-desc">I want to manage my medical history and track my health.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary w-100" (click)="showRoleModal = false; isLoading = false">
+          Cancel Registration
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="auth-main">
   <div class="auth-wrapper v3">
     <div class="auth-form">

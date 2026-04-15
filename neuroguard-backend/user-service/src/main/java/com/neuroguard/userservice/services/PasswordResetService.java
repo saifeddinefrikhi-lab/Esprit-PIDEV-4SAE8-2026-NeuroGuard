@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -23,7 +24,7 @@ public class PasswordResetService {
     private PasswordResetTokenRepository passwordResetTokenRepository;
 
     @Autowired
-    private UserService userService;
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private EmailService emailService;
@@ -45,7 +46,8 @@ public class PasswordResetService {
         User user = resetToken.getUser();
         
         // 1. Update user password
-        userService.updateUserPassword(user, newPassword);
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
         
         // 2. Mark token as used
         passwordResetTokenRepository.markTokenAsUsed(token);

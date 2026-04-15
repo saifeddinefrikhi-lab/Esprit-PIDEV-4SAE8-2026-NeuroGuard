@@ -7,29 +7,40 @@ import com.neuroguard.userservice.dto.UserStatsDto;
 import com.neuroguard.userservice.entities.Role;
 import com.neuroguard.userservice.entities.User;
 import com.neuroguard.userservice.security.JwtUtils;
+import com.neuroguard.userservice.repositories.PasswordResetTokenRepository;
 import com.neuroguard.userservice.repositories.UserRepository;
+import com.neuroguard.userservice.services.PasswordResetService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class UserService implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Autowired
     private JwtUtils jwtUtils;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private PasswordResetService passwordResetService;
 
     // Register a new user
     public String registerUser(User user) {
@@ -39,9 +50,20 @@ public class UserService implements UserDetailsService {
         if (userRepository.existsByUsername(user.getUsername())) {
             return "Username already exists!";
         }
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        if (user.getPassword() != null) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
         userRepository.save(user);
         return "User registered successfully!";
+    }
+
+    // Register a new user from Google Login (handles password null)
+    public User registerGoogleUser(User user) {
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new RuntimeException("Email already exists");
+        }
+        user.setPassword(null); // Explicitly ensure no password
+        return userRepository.save(user);
     }
 
     public String loginUser(String username, String password) {
@@ -107,7 +129,17 @@ public class UserService implements UserDetailsService {
         user.setAge(request.getAge());
         user.setRole(Role.valueOf(request.getRole().toUpperCase()));
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        User saved = userRepository.save(user);
+        log.info("Creating new user via Admin: {}", request.getEmail());
+        User saved = userRepository.saveAndFlush(user);
+        
+        // Trigger invitation email via password reset link (Exactly like Forgot Password feature)
+        try {
+            String result = passwordResetService.processForgotPassword(request.getEmail());
+            log.info("Invitation result for {}: {}", request.getEmail(), result);
+        } catch (Exception e) {
+            log.error("CRITICAL: Failed to send invitation email for {}", request.getEmail(), e);
+        }
+        
         return convertToDto(saved);
     }
 
@@ -139,11 +171,16 @@ public class UserService implements UserDetailsService {
         return convertToDto(updated);
     }
 
+    @Transactional
     public void deleteUser(Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new RuntimeException("User not found");
-        }
-        userRepository.deleteById(id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        // 1. Explicitly delete all dependencies (tokens)
+        passwordResetTokenRepository.deleteAllTokensByUser(user);
+        
+        // 2. Delete the user
+        userRepository.delete(user);
     }
 
     // Helper conversion (already exists in UserController, can be moved to service)

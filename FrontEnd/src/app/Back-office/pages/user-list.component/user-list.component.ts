@@ -230,9 +230,12 @@ export class UserListComponent implements OnInit {
         setTimeout(() => this.clearMessages(), 3000);
       },
       error: (err) => {
-        this.errorMessage = err?.message || 'Failed to delete user.';
+        // Extract message from backend response if available
+        const msg = err?.error || err?.message || 'Failed to delete user.';
+        this.errorMessage = msg;
         this.cdr.markForCheck();
-        setTimeout(() => this.clearMessages(), 3000);
+        console.error('Delete error:', err);
+        setTimeout(() => this.clearMessages(), 5000);
       }
     });
   }

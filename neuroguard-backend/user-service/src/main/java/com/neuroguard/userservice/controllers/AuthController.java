@@ -24,6 +24,7 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.neuroguard.userservice.dto.GoogleLoginRequest;
 import com.neuroguard.userservice.entities.Role;
 import org.springframework.beans.factory.annotation.Value;
+import jakarta.validation.Valid;
 import java.util.Collections;
 
 import jakarta.validation.constraints.Email;
@@ -143,7 +144,7 @@ public class AuthController {
     }
 
     @PostMapping("/google")
-    public ResponseEntity<?> googleLogin(@RequestBody GoogleLoginRequest googleRequest) {
+    public ResponseEntity<?> googleLogin(@Valid @RequestBody GoogleLoginRequest googleRequest) {
         try {
             log.info("Received Google login request");
             
@@ -169,38 +170,84 @@ public class AuthController {
                 if (userOpt.isPresent()) {
                     user = userOpt.get();
                     log.info("Existing user found for Google login: {}", user.getUsername());
+                    
+                    // Generate JWT for existing user
+                    String token = jwtUtils.generateJwtToken(user.getUsername(), user.getRole().name(), user.getId());
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("token", token);
+                    response.put("message", "Google login successful");
+                    return ResponseEntity.ok(response);
                 } else {
-                    // Create new user (password-less)
-                    log.info("Creating new user account for Google login: {}", email);
-                    user = new User();
-                    user.setEmail(email);
-                    user.setFirstName(firstName);
-                    user.setLastName(lastName);
-                    user.setUsername(email.split("@")[0] + "_" + System.currentTimeMillis() % 1000); // Unique username
-                    user.setRole(Role.PATIENT); // Default role
-                    user.setPassword(null); // No password for Google users
-                    userService.registerUser(user);
+                    // New user - return indicator so frontend can ask for role
+                    log.info("New Google user detected (email: {}). Requesting role selection.", email);
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("newUser", true);
+                    response.put("email", email);
+                    response.put("firstName", firstName != null ? firstName : "");
+                    response.put("lastName", lastName != null ? lastName : "");
+                    return ResponseEntity.ok(response);
+                }
+            } else {
+                log.warn("Invalid ID token received from Google");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message", "Invalid Google ID token"));
+            }
+        } catch (Exception e) {
+            log.error("CRITICAL error during Google authentication: type={}, message={}", e.getClass().getName(), e.getMessage(), e);
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "Google authentication failed: " + e.getMessage());
+            error.put("errorType", e.getClass().getSimpleName());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    @PostMapping("/google/complete")
+    public ResponseEntity<?> googleComplete(@Valid @RequestBody GoogleLoginRequest googleRequest) {
+        try {
+            log.info("Completing Google registration");
+            
+            if (googleRequest.getRole() == null || googleRequest.getRole().isEmpty()) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "Role selection is required");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+            }
+
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
+                    .setAudience(Collections.singletonList(googleClientId))
+                    .build();
+
+            GoogleIdToken idToken = verifier.verify(googleRequest.getIdToken());
+            if (idToken != null) {
+                Payload payload = idToken.getPayload();
+                String email = payload.getEmail();
+
+                // Check again if exists (concurrency safety)
+                Optional<User> userOpt = userService.findUserByEmail(email);
+                if (userOpt.isPresent()) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("message", "User already exists"));
                 }
 
+                // Create user
+                User user = new User();
+                user.setEmail(email);
+                user.setFirstName((String) payload.get("given_name"));
+                user.setLastName((String) payload.get("family_name"));
+                user.setUsername(email.split("@")[0] + "_" + System.currentTimeMillis() % 1000);
+                user.setRole(Role.valueOf(googleRequest.getRole().toUpperCase()));
+                
+                User savedUser = userService.registerGoogleUser(user);
+
                 // Generate JWT
-                String token = jwtUtils.generateJwtToken(user.getUsername(), user.getRole().name(), user.getId());
+                String token = jwtUtils.generateJwtToken(savedUser.getUsername(), savedUser.getRole().name(), savedUser.getId());
                 
                 Map<String, Object> response = new HashMap<>();
                 response.put("token", token);
-                response.put("message", "Google login successful");
+                response.put("message", "Google registration completed");
                 return ResponseEntity.ok(response);
-                
-            } else {
-                log.warn("Invalid ID token received from Google");
-                Map<String, String> error = new HashMap<>();
-                error.put("message", "Invalid Google ID token");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
             }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message", "Invalid token"));
         } catch (Exception e) {
-            log.error("Error during Google authentication: ", e);
-            Map<String, String> error = new HashMap<>();
-            error.put("message", "Google authentication failed: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+            log.error("Error in googleComplete: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("message", e.getMessage()));
         }
     }
 
