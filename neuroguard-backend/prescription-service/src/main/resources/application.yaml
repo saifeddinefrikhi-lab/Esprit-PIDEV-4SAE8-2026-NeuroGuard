@@ -1,0 +1,53 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  application:
+    name: prescription-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/prescriptiondb?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+    username: root
+    password: ""
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.MariaDBDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        boot:
+          allow_jdbc_metadata_access: false
+
+jwt:
+  secret: XDkzF2YNPA/7vXmPYJmaACjY6VBhwHJbr4pzPF5jguE=
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+
+server:
+  port: ${PRESCRIPTION_SERVICE_PORT:8089}
+
+neuroguard:
+  sms:
+    enabled: ${SMS_ENABLED:true}
+    base-url: ${SMS_BASE_URL:https://api.twilio.com/2010-04-01/Accounts}
+    account-sid: ${SMS_ACCOUNT_SID:}
+    auth-token: ${SMS_AUTH_TOKEN:}
+    from-number: ${SMS_FROM_NUMBER:+19788434209}
+    default-country-prefix: ${SMS_DEFAULT_COUNTRY_PREFIX:+216}
+
+logging:
+  level:
+    com.esprit.microservice.prescriptionservice: DEBUG
+    com.esprit.microservice.prescriptionservice.feign: DEBUG
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
