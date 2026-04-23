@@ -7,9 +7,9 @@ pipeline {
 
     environment {
         GIT_REPO       = 'https://github.com/saifeddinefrikhi-lab/Esprit-PIDEV-4SAE8-2526-NeuroGuard.git'
-        GIT_BRANCH     = 'main'
+        GIT_BRANCH     = 'main' 
         SONAR_TOKEN    = credentials('sonar-token')
-        SONAR_HOST_URL = credentials('sonar-host-url')
+        SONAR_HOST_URL = credentials('http://192.168.158.240:9000')
         DOCKER_IMAGE   = "neuroguard/forums-service"
         DOCKER_TAG     = "${env.BUILD_NUMBER}"
         SERVICE_DIR    = "neuroguard-backend/forums-service"
