@@ -1,0 +1,189 @@
+{
+  "realm": "neuroguard",
+  "enabled": true,
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "sslRequired": "none",
+  "accessTokenLifespan": 3600,
+  "ssoSessionMaxLifespan": 36000,
+  "roles": {
+    "realm": [
+      { "name": "ADMIN", "description": "Administrateur" },
+      { "name": "PROVIDER", "description": "Medecin / prestataire" },
+      { "name": "PATIENT", "description": "Patient" },
+      { "name": "CAREGIVER", "description": "Aidant" },
+      { "name": "user", "description": "Utilisateur standard" }
+    ]
+  },
+  "clientScopes": [
+    {
+      "name": "neuroguard-profile",
+      "description": "Claims metier NeuroGuard",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "userId-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "userId",
+            "claim.name": "userId",
+            "jsonType.label": "long",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "roles-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "claim.name": "roles",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "realm-access-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "claim.name": "realm_access.roles",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "neuroguard-frontend",
+      "name": "NeuroGuard Angular Frontend",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect",
+      "redirectUris": [
+        "http://localhost:4200/*",
+        "http://127.0.0.1:4200/*",
+        "http://localhost:80/*",
+        "http://frontend/*"
+      ],
+      "webOrigins": [
+        "http://localhost:4200",
+        "http://127.0.0.1:4200",
+        "http://localhost:80",
+        "+"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4200/*"
+      },
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "email",
+        "neuroguard-profile"
+      ]
+    },
+    {
+      "clientId": "neuroguard-gateway",
+      "name": "NeuroGuard API Gateway",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect",
+      "redirectUris": [
+        "http://localhost:4200/*",
+        "http://127.0.0.1:4200/*",
+        "http://localhost:8083/*"
+      ],
+      "webOrigins": [
+        "http://localhost:4200",
+        "http://127.0.0.1:4200",
+        "http://localhost:8083",
+        "+"
+      ],
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "email",
+        "neuroguard-profile"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "patient",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Alice",
+      "lastName": "Patient",
+      "email": "patient@neuroguard.local",
+      "attributes": { "userId": ["1"] },
+      "credentials": [{ "type": "password", "value": "demo", "temporary": false }],
+      "realmRoles": ["PATIENT"]
+    },
+    {
+      "username": "provider",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Bob",
+      "lastName": "Provider",
+      "email": "provider@neuroguard.local",
+      "attributes": { "userId": ["2"] },
+      "credentials": [{ "type": "password", "value": "demo", "temporary": false }],
+      "realmRoles": ["PROVIDER"]
+    },
+    {
+      "username": "caregiver",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Carla",
+      "lastName": "Caregiver",
+      "email": "caregiver@neuroguard.local",
+      "attributes": { "userId": ["3"] },
+      "credentials": [{ "type": "password", "value": "demo", "temporary": false }],
+      "realmRoles": ["CAREGIVER"]
+    },
+    {
+      "username": "admin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "User",
+      "email": "admin@neuroguard.local",
+      "attributes": { "userId": ["4"] },
+      "credentials": [{ "type": "password", "value": "demo", "temporary": false }],
+      "realmRoles": ["ADMIN"]
+    }
+  ]
+}

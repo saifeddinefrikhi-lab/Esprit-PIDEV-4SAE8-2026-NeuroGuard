@@ -129,9 +129,22 @@ export class PatientReservationsComponent implements OnInit {
   loadProviders(): void {
     this.reservationService.getProviders().subscribe({
       next: (data) => {
-        this.providers = data;
+        this.providers = data || [];
+        if (this.providers.length === 0) {
+          console.warn('No providers returned from API. Check that /users/providers endpoint is accessible and returns data.');
+        } else {
+          console.log('Providers loaded:', this.providers.length);
+        }
+        // Re-try pre-selection from query param if providers just loaded
+        const providerId = this.reservationForm.get('providerId')?.value;
+        if (providerId) {
+          this.selectProviderWhenLoaded(parseInt(providerId, 10));
+        }
       },
-      error: (err) => console.error('Error loading providers:', err)
+      error: (err) => {
+        console.error('Error loading providers:', err);
+        this.providers = [];
+      }
     });
   }
 

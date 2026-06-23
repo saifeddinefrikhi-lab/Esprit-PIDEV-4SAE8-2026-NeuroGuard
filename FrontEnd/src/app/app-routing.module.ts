@@ -407,11 +407,16 @@ export const routes: Routes = [
       },
       {
         path: 'homePage',
+        canActivate: [authGuard],
         loadComponent: () => import('./Front-office/home-page/home-page.component').then((c) => c.HomePageComponent)
       },
       {
         path: 'restricted',
         loadComponent: () => import('./pages/restriction/restricted.component').then((c) => c.RestrictedComponent)
+      },
+      {
+        path: 'auth-callback',
+        loadComponent: () => import('./pages/authentication/auth-callback/auth-callback.component').then((c) => c.AuthCallbackComponent)
       }
     ]
   },

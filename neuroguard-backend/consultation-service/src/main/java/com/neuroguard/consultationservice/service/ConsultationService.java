@@ -12,6 +12,8 @@ import com.neuroguard.consultationservice.exception.ResourceNotFoundException;
 import com.neuroguard.consultationservice.exception.UnauthorizedException;
 import com.neuroguard.consultationservice.repository.ConsultationRepository;
 import com.neuroguard.consultationservice.repository.ProviderAvailabilityRepository;
+import com.neuroguard.consultationservice.client.ReservationClient;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import feign.FeignException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,15 +37,21 @@ public class ConsultationService {
     private final ProviderAvailabilityRepository availabilityRepository;
     private final UserServiceClient userServiceClient;
     private final ZoomService zoomService;
+    private final ReservationClient reservationClient;
+    private final RabbitTemplate rabbitTemplate;
 
     public ConsultationService(ConsultationRepository repository,
                                ProviderAvailabilityRepository availabilityRepository,
                                UserServiceClient userServiceClient,
-                               ZoomService zoomService) {
+                               ZoomService zoomService,
+                               ReservationClient reservationClient,
+                               RabbitTemplate rabbitTemplate) {
         this.repository = repository;
         this.availabilityRepository = availabilityRepository;
         this.userServiceClient = userServiceClient;
         this.zoomService = zoomService;
+        this.reservationClient = reservationClient;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     @Transactional
@@ -209,8 +217,27 @@ public class ConsultationService {
             throw new UnauthorizedException("Vous n'êtes pas autorisé à supprimer cette consultation");
         }
 
+        // --- 1. Communication Synchrone (Feign Client) ---
+        try {
+            Object reservation = reservationClient.getReservationByConsultationId(id.toString());
+            if (reservation != null) {
+                logger.info("Found associated reservation using Feign Client: {}", reservation);
+            }
+        } catch (FeignException.NotFound e) {
+            logger.info("No reservation found for this consultation. Proceeding with deletion.");
+        } catch (Exception e) {
+            logger.warn("Error calling Reservation Service via Feign: {}", e.getMessage());
+        }
+
         // On peut implémenter une suppression logique (changement de statut) ou physique
         repository.delete(consultation);
+
+        // --- 2. Communication Asynchrone (RabbitMQ) ---
+        Map<String, Object> message = new HashMap<>();
+        message.put("consultationId", id.toString());
+        message.put("action", "CANCELLED");
+        rabbitTemplate.convertAndSend("consultation.exchange", "consultation.cancelled", message);
+        logger.info("Published async message to RabbitMQ for cancelled consultation {}", id);
     }
 
     @Transactional(readOnly = true)

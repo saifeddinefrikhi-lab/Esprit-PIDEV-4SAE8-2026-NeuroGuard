@@ -1,48 +1,51 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { AuthService } from '../services/auth.service'; // adjust path
+import { Observable, from, switchMap } from 'rxjs';
+import Keycloak from 'keycloak-js';
 
+/**
+ * AuthInterceptor
+ * Attaches the Keycloak Bearer token to every API request.
+ * Uses keycloak-js updateToken() directly to handle token refresh.
+ */
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-  constructor(private auth: AuthService) {}
+  private readonly keycloak = inject(Keycloak, { optional: true });
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const isPublicAuthRequest = req.url.includes('/auth/login') || req.url.includes('/auth/register');
+    // Skip Keycloak's own endpoints
+    const isKeycloakRequest =
+      req.url.includes('/realms/') ||
+      req.url.includes('/protocol/openid-connect/');
 
-    if (isPublicAuthRequest) {
+    if (isKeycloakRequest) {
       return next.handle(req);
     }
 
-    const token = this.auth.getToken(); // reads from localStorage
-
-    if (token) {
-      try {
-        // Decode to extract role and userId for logging
-        const payloadPart = token.split('.')[1];
-        const base64 = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
-        const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
-        const payload = JSON.parse(atob(padded));
-
-        // Attach the token with Bearer scheme
-        req = req.clone({
-          setHeaders: {
-            Authorization: `Bearer ${token}`
+    // If Keycloak is authenticated, refresh token if needed then attach it
+    if (this.keycloak?.authenticated) {
+      return from(
+        // Refresh if token expires in less than 30 seconds
+        this.keycloak.updateToken(30).catch(() => {
+          // Token refresh failed — force re-login
+          this.keycloak!.login({ redirectUri: `${window.location.origin}/auth-callback` });
+          return false;
+        })
+      ).pipe(
+        switchMap(() => {
+          const token = this.keycloak?.token;
+          if (token) {
+            const authReq = req.clone({
+              setHeaders: { Authorization: `Bearer ${token}` }
+            });
+            return next.handle(authReq);
           }
-        });
-
-        console.group(`[AuthInterceptor] Request: ${req.method} ${req.url.replace(/.*\/\/[^\/]+/, '')}`);
-        console.log('Role:', payload.role);
-        console.log('UserId:', payload.userId);
-        console.groupEnd();
-      } catch (e) {
-        // Token exists but is malformed - don't send it
-        console.error('[AuthInterceptor] Token decode failed, request will not be authorized:', e);
-      }
-    } else {
-      console.warn('[AuthInterceptor] No token found for request:', req.url);
+          return next.handle(req);
+        })
+      );
     }
 
+    // No Keycloak session — pass through
     return next.handle(req);
   }
 }

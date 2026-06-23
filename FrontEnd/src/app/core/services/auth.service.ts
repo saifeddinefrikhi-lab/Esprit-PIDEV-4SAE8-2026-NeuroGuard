@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, tap, catchError, throwError, BehaviorSubject } from 'rxjs';
 import { Router } from '@angular/router';
+import Keycloak from 'keycloak-js';
 import { environment } from '../../../environments/environment';
 
 export interface CurrentUser {
@@ -13,21 +14,148 @@ export interface CurrentUser {
   userId: number;
 }
 
+export interface KeycloakTokenParsed {
+  sub?: string;
+  preferred_username?: string;
+  given_name?: string;
+  family_name?: string;
+  name?: string;
+  email?: string;
+  userId?: number | string;
+  realm_access?: { roles?: string[] };
+  // Custom mapper: roles put directly in token root claim
+  roles?: string[];
+  // Resource access (client roles)
+  resource_access?: { [clientId: string]: { roles?: string[] } };
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = environment.apiUrl;  // URL of the backend API (gateway)
+  private apiUrl = environment.apiUrl;
   currentUser: CurrentUser | null = null;
   private isLoggedInSubject = new BehaviorSubject<boolean>(false);
   public isLoggedIn$ = this.isLoggedInSubject.asObservable();
 
   private readonly jwtPattern = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/;
+  private readonly appRoles = ['ADMIN', 'PROVIDER', 'PATIENT', 'CAREGIVER'];
   private expectedRole: string | null = null;
+  private readonly keycloak = inject(Keycloak, { optional: true });
 
-  constructor(private http: HttpClient, private router: Router) {
+  constructor(
+    private http: HttpClient,
+    private router: Router
+  ) {
     this.setupStorageShield();
     this.initializeCurrentUser();
+  }
+
+  isKeycloakAuthenticated(): boolean {
+    return this.keycloak?.authenticated ?? false;
+  }
+
+  syncKeycloakUser(): void {
+    if (!this.keycloak?.authenticated) {
+      return;
+    }
+
+    const parsed = this.keycloak.tokenParsed as KeycloakTokenParsed | undefined;
+    if (!parsed) {
+      return;
+    }
+    // Debug: log all realm roles from Keycloak token
+    console.log('[AuthService] Keycloak realm roles:', parsed.realm_access?.roles);
+    console.log('[AuthService] Keycloak root roles claim:', (parsed as any).roles);
+    const role = this.extractKeycloakRole(parsed);
+    console.log('[AuthService] Extracted role:', role);
+    const userId = this.extractKeycloakUserId(parsed);
+    const firstName = parsed.given_name || '';
+    const lastName = parsed.family_name || '';
+    const username = parsed.preferred_username || parsed.sub || 'user';
+    const fullName = `${firstName} ${lastName}`.trim() || parsed.name || username;
+
+    this.currentUser = {
+      name: fullName,
+      username,
+      firstName,
+      lastName,
+      role,
+      userId
+    };
+    this.expectedRole = role;
+    this.isLoggedInSubject.next(true);
+  }
+
+  loginWithKeycloak(): Promise<void> {
+    if (!this.keycloak) {
+      return Promise.reject(new Error('Keycloak is not available.'));
+    }
+
+    return this.keycloak.login({
+      redirectUri: `${window.location.origin}/auth-callback`
+    });
+  }
+
+  logoutFromKeycloak(): Promise<void> {
+    if (this.keycloak) {
+      return this.keycloak.logout({ redirectUri: window.location.origin });
+    }
+    return Promise.resolve();
+  }
+
+
+  private extractKeycloakRole(parsed: KeycloakTokenParsed): string {
+    // 1. Custom mapper puts roles directly in root claim 'roles' (as configured in neuroguard-realm.json)
+    const rootRoles: string[] = parsed.roles || [];
+
+    // 2. Standard Keycloak realm_access.roles
+    const realmRoles: string[] = parsed.realm_access?.roles || [];
+
+    // 3. Client roles from resource_access (any client)
+    const clientRoles: string[] = Object.values(parsed.resource_access || {})
+      .flatMap(c => c.roles || []);
+
+    // Merge all, deduplicated
+    const allRoles = [...new Set([...rootRoles, ...realmRoles, ...clientRoles])];
+
+    console.log('[AuthService] All token roles (root + realm + client):', allRoles);
+
+    // Match against known app roles (case-insensitive)
+    const matched = this.appRoles.find((appRole) =>
+      allRoles.some((tokenRole: string) => tokenRole.toUpperCase() === appRole.toUpperCase())
+    );
+    if (matched) return matched;
+
+    console.warn('[AuthService] No matching app role found in token roles:', allRoles, '— defaulting to PATIENT');
+    return 'PATIENT';
+  }
+
+  private extractKeycloakUserId(parsed: KeycloakTokenParsed): number {
+    if (typeof parsed.userId === 'number') {
+      return parsed.userId;
+    }
+    if (typeof parsed.userId === 'string') {
+      const parsedId = Number(parsed.userId);
+      if (!Number.isNaN(parsedId) && parsedId > 0) {
+        return parsedId;
+      }
+    }
+
+    // Try to extract a numeric id from the 'sub' field (Keycloak UUID won't work, but some setups put the DB id here)
+    const sub = parsed.sub || '';
+    const subAsNumber = Number(sub);
+    if (!Number.isNaN(subAsNumber) && subAsNumber > 0) {
+      return subAsNumber;
+    }
+
+    console.warn('[AuthService] Could not extract numeric userId from Keycloak token. Token claims:', {
+      userId: parsed.userId,
+      sub: parsed.sub,
+      preferred_username: parsed.preferred_username
+    });
+    // Return 0 so the caller can detect the missing ID instead of using wrong hardcoded IDs
+    return 0;
   }
 
   // Debug helper to find out WHO is interacting with the token
@@ -68,13 +196,18 @@ export class AuthService {
     };
   }
 
-  // Check if user is logged in based on stored token
+  // Check if user is logged in based on stored token or Keycloak session
   get isLoggedIn(): boolean {
-    return this.isLoggedInSubject.value;
+    return this.isKeycloakAuthenticated() || this.isLoggedInSubject.value;
   }
 
-  // Initialize the current user by decoding the token stored in localStorage
+  // Initialize the current user by decoding the token stored in localStorage or Keycloak session
   private initializeCurrentUser() {
+    if (this.isKeycloakAuthenticated()) {
+      this.syncKeycloakUser();
+      return;
+    }
+
     const storedAuthValue = localStorage.getItem('authToken');
     const token = this.extractJwtToken(storedAuthValue);
 
@@ -221,6 +354,14 @@ export class AuthService {
 
   // Logout the user and clear token
   logout() {
+    if (this.isKeycloakAuthenticated() && this.keycloak) {
+      this.expectedRole = null;
+      this.currentUser = null;
+      this.isLoggedInSubject.next(false);
+      this.keycloak.logout({ redirectUri: `${window.location.origin}/homePage` });
+      return;
+    }
+
     // Clear local session immediately to prevent token usage
     this.clearLocalSession();
 
@@ -329,6 +470,10 @@ export class AuthService {
   }
   
   getToken(): string | null {
+    if (this.isKeycloakAuthenticated() && this.keycloak?.token) {
+      return this.keycloak.token;
+    }
+
     const raw = localStorage.getItem('authToken');
     const token = this.extractJwtToken(raw);
 

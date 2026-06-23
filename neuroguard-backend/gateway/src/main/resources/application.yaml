@@ -4,14 +4,25 @@ server:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
     registry-fetch-interval-seconds: 5
 
 spring:
   application:
     name: gateway
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/neuroguard}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8180/realms/neuroguard/protocol/openid-connect/certs}
+          # Note: En Docker, KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/neuroguard (via docker-compose env)
   cloud:
     gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
       globalcors:
         add-to-simple-url-handler-mapping: true
         corsConfigurations:
@@ -19,6 +30,10 @@ spring:
             allowedOrigins:
               - "http://localhost:4200"
               - "http://127.0.0.1:4200"
+              - "http://localhost:80"
+              - "http://localhost"
+              - "http://frontend"
+              - "http://frontend:80"
             allowedMethods:
               - GET
               - POST
@@ -28,6 +43,9 @@ spring:
               - OPTIONS
             allowedHeaders:
               - "*"
+            exposedHeaders:
+              - "Authorization"
+              - "Content-Type"
             allowCredentials: true
             maxAge: 3600
       routes:
@@ -38,90 +56,7 @@ spring:
         - id: user-users
           uri: lb://user-service
           predicates:
-            - Path=/users/**
-        # medical-history-service routes
-        - id: medical-provider
-          uri: lb://medical-history-service
-          predicates:
-            - Path=/api/provider/medical-history,/api/provider/medical-history/**
-        - id: medical-patient
-          uri: lb://medical-history-service
-          predicates:
-            - Path=/api/patient/medical-history/**
-        - id: medical-caregiver
-          uri: lb://medical-history-service
-          predicates:
-            - Path=/api/caregiver/medical-history/**
-        - id: medical-statistics
-          uri: lb://medical-history-service
-          predicates:
-            - Path=/api/statistics/**
-        - id: medical-files
-          uri: lb://medical-history-service
-          predicates:
-            - Path=/files/**
-        - id: medical-test
-          uri: lb://medical-history-service
-          predicates:
-            - Path=/test
-        # risk-alert-service routes
-        - id: risk-patient
-          uri: lb://risk-alert-service
-          predicates:
-            - Path=/api/patient/alerts/**
-        - id: risk-caregiver
-          uri: lb://risk-alert-service
-          predicates:
-            - Path=/api/caregiver/alerts/**
-        - id: risk-provider
-          uri: lb://risk-alert-service
-          predicates:
-            - Path=/api/provider/alerts,/api/provider/alerts/**
-        - id: risk-ws
-          uri: lb:ws://risk-alert-service
-          predicates:
-            - Path=/ws/alerts/**
-        - id: medical-ws
-          uri: lb:ws://medical-history-service
-          predicates:
-            - Path=/ws/medical-history/**    
-        - id: forum-posts
-          uri: lb://forum-service
-          predicates:
-            - Path=/api/posts/**
-        - id: forum-categories
-          uri: lb://forum-service
-          predicates:
-            - Path=/api/categories/**
-        - id: care-plans
-          uri: lb://careplan-service
-          predicates:
-            - Path=/api/care-plans/**
-        - id: prescriptions
-          uri: lb://prescription-service
-          predicates:
-            - Path=/api/prescriptions/**
-        - id: pharmacies
-          uri: lb://pharmacy-service
-          predicates:
-            - Path=/api/pharmacies,/api/pharmacies/**
-        # Proxy Ollama (set OLLAMA_URI if Ollama runs elsewhere, e.g. http://host:11434)
-        # Strip Ollama's CORS headers to avoid duplicate (gateway CORS adds them once)
-        - id: ollama
-          uri: ${OLLAMA_URI:http://localhost:11434}
-          predicates:
-            - Path=/api/ollama/**
-          filters:
-            - RewritePath=/api/ollama(?<segment>/?.*), /api${segment}
-            # Add CORS first in list so they run AFTER RemoveResponseHeader when response comes back
-            - AddResponseHeader=Access-Control-Allow-Origin,http://localhost:4200
-            - AddResponseHeader=Access-Control-Allow-Credentials,true
-            - RemoveResponseHeader=Access-Control-Allow-Origin
-            - RemoveResponseHeader=Access-Control-Allow-Credentials
-            - RemoveResponseHeader=Access-Control-Expose-Headers
-            - RemoveResponseHeader=Access-Control-Allow-Methods
-            - RemoveResponseHeader=Access-Control-Allow-Headers
-            - RemoveResponseHeader=Access-Control-Max-Age
+            - Path=/users/**,/api/users/**
         - id: consultation-service
           uri: lb://consultation-service
           predicates:
@@ -138,33 +73,33 @@ spring:
           uri: lb://consultation-service
           predicates:
             - Path=/api/distance/**
-        - id: assurance-service
-          uri: lb://assurance-service
-          predicates:
-            - Path=/api/assurances/**
-        - id: assurance-simulations
-          uri: lb://assurance-service
-          predicates:
-            - Path=/api/simulations/**
         - id: reservation-service
           uri: lb://reservation-service
           predicates:
             - Path=/api/reservations/**
-        - id: monitoring-service
-          uri: lb://monitoring-service
-          predicates:
-            - Path=/api/monitoring/**
-        - id: wellbeing-service
-          uri: lb://wellbeing-service
-          predicates:
-            - Path=/api/wellbeing/**
-        - id: product-order-service
-          uri: lb://product-order-service
-          predicates:
-            - Path=/products/**, /orders/**, /deliveries/**
 
+app:
+  security:
+    keycloak-enabled: ${KEYCLOAK_SECURITY_ENABLED:true}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: Consultation Service
+        url: /api/consultations/v3/api-docs
+      - name: Reservation Service
+        url: /api/reservations/v3/api-docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
 
 logging:
   level:
-    org.springframework.cloud.gateway: DEBUG
-    reactor.netty.http.client: DEBUG
+    org.springframework.cloud.gateway: INFO
+    org.springframework.security: INFO

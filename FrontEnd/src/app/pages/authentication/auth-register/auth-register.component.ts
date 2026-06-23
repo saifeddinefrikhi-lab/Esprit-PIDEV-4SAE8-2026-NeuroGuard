@@ -6,6 +6,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractContro
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { timeout, finalize } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-auth-register',
@@ -14,6 +15,7 @@ import { timeout, finalize } from 'rxjs';
   styleUrls: ['./auth-register.component.scss']
 })
 export class AuthRegisterComponent implements AfterViewInit {
+  private readonly googleClientId = environment.googleClientId?.trim() || '';
   registerForm: FormGroup;
   submitted = false;
   isLoading = false;
@@ -61,9 +63,13 @@ export class AuthRegisterComponent implements AfterViewInit {
   }
 
   private initializeGoogleSignIn(): void {
+    if (!this.googleClientId) {
+      return;
+    }
+
     if (typeof google !== 'undefined') {
       google.accounts.id.initialize({
-        client_id: '550789921754-tdpg2nso52gvhr2mgdhk0ra01hk79kt8.apps.googleusercontent.com',
+        client_id: this.googleClientId,
         callback: (response: any) => this.ngZone.run(() => this.handleGoogleCredential(response))
       });
 

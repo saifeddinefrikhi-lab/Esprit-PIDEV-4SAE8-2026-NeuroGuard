@@ -45,8 +45,8 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
   instance:
-    hostname: localhost
-    prefer-ip-address: false
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
+    prefer-ip-address: ${EUREKA_INSTANCE_PREFER_IP_ADDRESS:false}
 
 server:
   port: 8081  # Port on which the microservice will run

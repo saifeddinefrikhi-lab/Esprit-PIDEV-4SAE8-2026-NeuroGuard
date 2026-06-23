@@ -1,0 +1,14 @@
+server:
+  port: 3000
+
+mongodb:
+  uri: ${MONGODB_URI:mongodb://localhost:27017/reservation_db}
+
+rabbitmq:
+  url: ${RABBITMQ_URL:amqp://guest:guest@localhost:5672}
+
+eureka:
+  host: ${EUREKA_HOST:localhost}
+  port: ${EUREKA_PORT:8761}
+  instance:
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:reservation-service}

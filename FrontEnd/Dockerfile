@@ -11,7 +11,7 @@ FROM nginx:alpine
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 # Copy built assets
-COPY --from=build /app/dist/mantis-free-version /usr/share/nginx/html
+COPY --from=build /app/dist /usr/share/nginx/html
 
 # Custom nginx config to handle Angular routing (SPA fallback)
 COPY nginx.conf /etc/nginx/conf.d/default.conf

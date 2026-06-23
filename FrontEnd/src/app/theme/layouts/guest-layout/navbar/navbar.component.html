@@ -6,7 +6,7 @@
 
         <nav class="nav-links">
           <a routerLink="/homePage" routerLinkActive="active">Home</a>
-          <a routerLink="/login" routerLinkActive="active">Login</a>
+          <a href="javascript:void(0)" (click)="loginWithKeycloak()" routerLinkActive="active">Login</a>
           <a routerLink="/register" routerLinkActive="active">Register</a>
           <button mat-button class="btn-accent nav-cta" routerLink="/register">
             Get Started
@@ -22,7 +22,7 @@
       <div class="mobile-menu" [class.open]="menuOpen">
         <a routerLink="/" (click)="menuOpen = false" routerLinkActive="active"
            [routerLinkActiveOptions]="{exact: true}">Home</a>
-        <a routerLink="/login" (click)="menuOpen = false" routerLinkActive="active">Login</a>
+        <a href="javascript:void(0)" (click)="loginWithKeycloak()" routerLinkActive="active">Login</a>
         <a routerLink="/register" (click)="menuOpen = false" routerLinkActive="active">Register</a>
         <button mat-raised-button class="btn-accent mobile-cta" routerLink="/register"
                 (click)="menuOpen = false">Get Started</button>

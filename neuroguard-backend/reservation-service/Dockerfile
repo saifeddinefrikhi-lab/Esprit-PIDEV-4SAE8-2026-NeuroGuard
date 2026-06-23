@@ -1,12 +1,13 @@
-FROM eclipse-temurin:17-jre-alpine
+FROM node:18-alpine
+
 WORKDIR /app
 
-# Create a non‑root user (fix the adduser/addgroup syntax for Alpine)
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+COPY package*.json ./
 
-# Copy the JAR that was built by the pipeline (not rebuilt inside Docker)
-COPY target/*.jar app.jar
+RUN npm install
 
-USER appuser
-EXPOSE 8083
-ENTRYPOINT ["java", "-jar", "app.jar"]
+COPY . .
+
+EXPOSE 3000
+
+CMD ["npm", "start"]
