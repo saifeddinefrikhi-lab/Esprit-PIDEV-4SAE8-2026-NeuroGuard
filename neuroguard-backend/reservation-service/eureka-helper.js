@@ -6,7 +6,7 @@ exports.registerWithEureka = function (appName, PORT) {
     const eurekaHost = process.env.EUREKA_HOST || 'localhost';
     const eurekaPort = parseInt(process.env.EUREKA_PORT || '8761', 10);
 
-    const client = new Eureka({
+    const client = new Eureka({ 
         instance: {
             app: appName,
             hostName: hostname,
